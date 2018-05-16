@@ -14,7 +14,13 @@
 ### 5018/5/15
 1. 将 `myPosition` 定义放到了开始。
 2. 在 `Line 24 ` 增加`vector<vector<Card> > allCombos[20]`用来计算当前手牌的所有可能组合。 
-3. 在 `Line 26` 定义了变量 `lastPlayer`，表示上次出牌的玩家，主要用于农民不相互攻击。这个变量将在 `input()`函数里完成赋值。
-4. 在 `Line 390` 定义了估值函数 `EvaluateCard()`，对当前手牌好坏程度及获胜概率进行评价(待定)。 
-5. 在 `Line 400` 定义函数 `findAllCombos()` 用来找出当前手牌的所有可能组合，并把结果放在 `vector<CardCombo> allCombos[20]` 中。
-6. 在 `Line xxx` 增加函数 `myGivenCombo()` 用来出牌，分为农民和地主两个角色的出牌策略。
+3. 在 `Line 21` 定义了变量 `lastPlayer`，表示上次出牌的玩家，主要用于农民不相互攻击。这个变量将在 `input()`函数里完成赋值。
+4. 在 `Line 27` 声明了函数 `SearchCard()` 用来寻找主牌的从牌。其具体实现在 `Line 928` 处定义。
+5. 在 `Line 392` 定义了估值函数 `EvaluateCard()`，对当前手牌好坏程度及获胜概率进行评价(待实现)。 
+6. 在 `Line 403` 定义函数 `findAllCombos()` 用来找出当前手牌的所有可能组合，并把结果放在 `vector<CardCombo> allCombos[20]` 中。
+7. 在 `Line 716` 定义函数 `myGivenCombo()` 用来出牌，分为农民和地主两个角色的出牌策略。一开始调用了 `findAllCombos()`函数。
+8. 在 `Line 740` 处修改了出牌策略，调用 `myGivenCombo()`函数。
+9. 在 `Line 746` 处的修改表示农民不打农民。
+10. 在 `Line 797` 定义 `myCombos`，用来存储所有可行的接牌方案。
+11. 在 `Line 853` 处根据不同角色出不同的牌。
+12. 从 `Line 880` 开始修改了使用炸弹的规则。

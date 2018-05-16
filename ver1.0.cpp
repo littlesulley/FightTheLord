@@ -23,6 +23,9 @@ int lastPlayer;
 struct CardCombo;
 vector<CardCombo> allCombos[20]; // 当前手牌的所有可能组合 
 
+								 // 递归地找牌,实现放在后面 
+void SearchCard(int&, int, short, short, int&, vector<short>&, vector<short>&, short*, short*, set<short>&);
+
 enum class CardComboType
 {
 	PASS, // 过
@@ -405,94 +408,304 @@ struct CardCombo
 		auto deck = vector<Card>(begin, end);
 		vector<Card> tmp;
 		short counts[MAX_LEVEL + 1] = {};
+		short beginOfCounts[MAX_LEVEL + 1] = {}; //  每个等级牌在手牌中的起始位置
 		int currentType;   // 当前枚举类型 
+		int Size = deck.size();// 当前手牌数量
 
 		sort(deck.begin(), deck.end()); //先排个序再说吧... 
 		for (Card c : deck)
 			counts[card2level(c)]++;  // 数一下各等级的牌有多少
 
-									  // 首先枚举单张
+		for (int i = 1; i < 13; i++)
+			beginOfCounts[i] = beginOfCounts[i - 1] + counts[i - 1];
+
+		// 下面开始枚举，因为同等级的牌是没有区别的，所以只考虑该等级的前k张
+		// 首先枚举单张(包括大小王)
 		currentType = (int)CardComboType::SINGLE;
-		for (Card c : deck)
+		for (int i = 0; i<13; i++)
+			if (counts[i])
+			{
+				tmp.push_back(deck[beginOfCounts[i]]);
+				allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+				tmp.clear();
+			}
+		if (counts[13]) // 小王
 		{
-			tmp.push_back(c);
+			tmp.push_back(deck[Size - 2]);
+			allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+			tmp.clear();
+		}
+		if (counts[14]) // 大王
+		{
+			tmp.push_back(deck[Size - 1]);
 			allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
 			tmp.clear();
 		}
 
 		// 下面枚举对子
 		currentType = (int)CardComboType::PAIR;
-		for (int i = 0; i <13;i++)
+		for (int i = 0; i <13; i++) // 最多到一对2
 			if (counts[i] >= 2)
 			{
-				int l = 0, r;  // 等级i的牌在deck中的起始位置l,r
-				for (int j = 0; j < i; j++)
-					l += counts[j];
-				r = l + counts[i];
-				for (int j = l; j < r; j++)
-				{
-					tmp.push_back(deck[j]);
-					for (int k = j + 1; k <= r; k++)
-					{
-						tmp.push_back(deck[k]);
-						allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
-						tmp.pop_back();
-					}
-					tmp.pop_back();
-				}	
+				int l = beginOfCounts[i];  // 等级i的牌在deck中的起始位置l
+				tmp.push_back(deck[l]);
+				tmp.push_back(deck[l + 1]);
+				allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+				tmp.clear();
 			}
 
 		// 下面枚举单顺
 		currentType = (int)CardComboType::STRAIGHT;
+		for (int l = 0; l < 8; l++) // 枚举顺子起点
+			for (int r = l + 4; r < 12; r++) // 枚举顺子终点
+			{
+				int haveSeq = 1;
+				for (int i = l; i <= r; r++)
+					if (!counts[i])
+					{
+						haveSeq = 0;
+						break;
+					}
+				if (!haveSeq) break; // 在[l,r]中间某处不满足了，r再增大也不会满足
+				for (int i = l; i <= r; i++) // 每个选第一张就行了
+					tmp.push_back(deck[beginOfCounts[i]]);
+				allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+				tmp.clear();
+			}
 
 		// 下面枚举双顺
 		currentType = (int)CardComboType::STRAIGHT2;
+		for (int l = 0; l<10; l++)
+			for (int r = l + 2; r < 12; r++)
+			{
+				int haveSeq = 1;
+				for (int i = l; i <= r; i++)
+					if (counts[i] < 2)
+					{
+						haveSeq = 0;
+						break;
+					}
+				if (!haveSeq) break;
+				for (int i = l; i <= r; i++)
+					for (int j = beginOfCounts[i]; j < beginOfCounts[i] + 2; j++)
+						tmp.push_back(deck[j]);
+				allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+				tmp.clear();
+			}
 
 		// 下面枚举三条
 		currentType = (int)CardComboType::TRIPLET;
-
-		// 下面枚举三带一
-		currentType = (int)CardComboType::TRIPLET1;
-
-		// 下面枚举三带二
-		currentType = (int)CardComboType::TRIPLET2;
+		for (int i = 0; i<13; i++)
+			if (counts[i] >= 3)
+			{
+				int l = beginOfCounts[i];
+				tmp.push_back(deck[l]);
+				tmp.push_back(deck[l + 1]);
+				tmp.push_back(deck[l + 2]);
+				allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+				tmp.clear();
+			}
 
 		// 下面枚举炸弹
 		currentType = (int)CardComboType::BOMB;
+		for (int i = 0; i<13; i++)
+			if (counts[i] == 4)
+			{
+				int l = beginOfCounts[i];
+				for (int j = l; j < l + 4; j++)
+					tmp.push_back(deck[j]);
+				allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+				tmp.clear();
+			}
 
-		// 下面枚举四带二单
+		// 下面枚举组合牌，直接利用上面我们求出的主牌即可，为此需要先得出每种牌型的数量
+		int Triple = (int)CardComboType::TRIPLET;
+		int TripleSize = allCombos[Triple].size();
+		int Quad = (int)CardComboType::BOMB;
+		int QuadSize = allCombos[Quad].size();
+
+		// 下面枚举三带一张
+		currentType = (int)CardComboType::TRIPLET1;
+		for (int i = 0; i < TripleSize; i++)
+		{
+			vector<Card> mainCards = allCombos[Triple][i].cards;
+			int mainLevel = allCombos[Triple][i].comboLevel;
+			for (int j = 0; j < 15; j++)
+				if (j != mainLevel && counts[j]) // 三带一不能带相同的，不然就成炸弹了
+				{
+					tmp = mainCards;
+					tmp.push_back(deck[beginOfCounts[j]]);
+					allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+					tmp.clear();
+				}
+		}
+
+		// 下面枚举三带二(一对)
+		currentType = (int)CardComboType::TRIPLET2;
+		for (int i = 0; i < TripleSize; i++)
+		{
+			vector<Card> mainCards = allCombos[Triple][i].cards;
+			int mainLevel = allCombos[Triple][i].comboLevel;
+			for (int j = 0; j < 13; j++)
+				if (j != mainLevel && counts[j] >= 2)
+				{
+					tmp = mainCards;
+					tmp.push_back(deck[beginOfCounts[j]]);
+					tmp.push_back(deck[beginOfCounts[j] + 1]);
+					allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+					tmp.clear();
+				}
+		}
+
+		// 下面枚举四带二单，直接用上面枚举的炸弹
 		currentType = (int)CardComboType::QUADRUPLE2;
+		for (int i = 0; i < QuadSize; i++)
+		{
+			vector<Card> mainCards = allCombos[Quad][i].cards;
+			int mainLevel = allCombos[Quad][i].comboLevel;
+			for (int j = 0; j < 12; j++)
+				for (int k = j + 1; k < 13; k++)
+					if (j != mainLevel && k != mainLevel && counts[j] && counts[k])
+					{
+						tmp = mainCards;
+						tmp.push_back(deck[beginOfCounts[j]]);
+						tmp.push_back(deck[beginOfCounts[k]]);
+						allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+						tmp.clear();
+					}
+		}
 
 		// 下面枚举四带二对
 		currentType = (int)CardComboType::QUADRUPLE4;
+		for (int i = 0; i < QuadSize; i++)
+		{
+			vector<Card> mainCards = allCombos[Quad][i].cards;
+			int mainLevel = allCombos[Quad][i].comboLevel;
+			for (int j = 0; j < 12; j++)
+				for (int k = j + 1; k < 13; k++)
+					if (j != mainLevel && k != mainLevel && counts[j] >= 2 && counts[k] >= 2)
+					{
+						tmp = mainCards;
+						tmp.push_back(deck[beginOfCounts[j]]);
+						tmp.push_back(deck[beginOfCounts[j] + 1]);
+						tmp.push_back(deck[beginOfCounts[k]]);
+						tmp.push_back(deck[beginOfCounts[k] + 1]);
+						allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+						tmp.clear();
+					}
+		}
 
 		// 下面枚举飞机不带翼
 		currentType = (int)CardComboType::PLANE;
-
-		// 下面枚举飞机带小翼
-		currentType = (int)CardComboType::PLANE1;
-
-		// 下面枚举飞机带大翼
-		currentType = (int)CardComboType::PLANE2;
+		int lastLevel;
+		for (int i = 0; i < TripleSize; i++)
+		{
+			lastLevel = allCombos[Triple][i].comboLevel;
+			tmp = allCombos[Triple][i].cards;
+			for (int j = i + 1; j < TripleSize; j++)
+			{
+				int currentLevel = allCombos[Triple][j].comboLevel;
+				if (lastLevel + 1 == currentLevel && currentLevel != 12) // 不能有2
+				{
+					lastLevel = currentLevel;
+					tmp.insert(tmp.end(), allCombos[Triple][j].cards.begin(), allCombos[Triple][j].cards.end());
+					allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+				}
+				else
+					break;
+			}
+			tmp.clear();
+		}
 
 		// 下面枚举航天飞机不带翼
 		currentType = (int)CardComboType::SSHUTTLE;
+		for (int i = 0; i < QuadSize; i++)
+		{
+			lastLevel = allCombos[Quad][i].comboLevel;
+			tmp = allCombos[Quad][i].cards;
+			for (int j = i + 1; j < QuadSize; j++)
+			{
+				int currentLevel = allCombos[Quad][j].comboLevel;
+				if (lastLevel + 1 == currentLevel)
+				{
+					lastLevel = currentLevel;
+					tmp.insert(tmp.end(), allCombos[Quad][j].cards.begin(), allCombos[Quad][j].cards.end());
+					allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
+				}
+				else
+					break;
+			}
+			tmp.clear();
+		}
+
+		int Plane=(int)CardComboType::PLANE;
+		int PlaneSize = allCombos[Plane].size();
+		int SShuttle = (int)CardComboType::SSHUTTLE;
+		int SShuttleSize = allCombos[SShuttle].size();
+
+		// 下面枚举飞机带小翼
+		currentType = (int)CardComboType::PLANE1;
+		for (int i = 0; i < PlaneSize; i++)
+		{
+			tmp = allCombos[Plane][i].cards;
+			set<Level> levels;   // 当前飞机中所有三条的等级
+			for (Card c : tmp)
+				levels.insert(card2level(c));
+			int levelCount = levels.size(); // 一共需要这么多张单张
+			// 下面枚举所有可能的从牌
+			SearchCard(currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
+			tmp.clear();
+		}
+
+		// 下面枚举飞机带大翼
+		currentType = (int)CardComboType::PLANE2;
+		for (int i = 0; i < PlaneSize; i++)
+		{
+			tmp = allCombos[Plane][i].cards;
+			set<Level> levels;
+			for (Card c : tmp)
+				levels.insert(card2level(c));
+			int levelCount = levels.size(); // 一共需要这么多对子
+			SearchCard(currentType, 0, 2, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
+			tmp.clear();
+		}
 
 		// 下面枚举航天飞机带小翼
 		currentType = (int)CardComboType::SSHUTTLE2;
+		for (int i = 0; i < SShuttleSize; i++)
+		{
+			tmp = allCombos[SShuttle][i].cards;
+			set<Level> levels;   // 当前航天飞机中所有四条的等级
+			for (Card c : tmp)
+				levels.insert(card2level(c));
+			int levelCount = 2 * levels.size();
+			SearchCard(currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
+			tmp.clear();
+		}
 
 		// 下面枚举航天飞机带大翼
 		currentType = (int)CardComboType::SSHUTTLE4;
+		for (int i = 0; i < SShuttleSize; i++)
+		{
+			tmp = allCombos[SShuttle][i].cards;
+			set<Level> levels; 
+			for (Card c : tmp)
+				levels.insert(card2level(c));
+			int levelCount = 2 * levels.size();
+			SearchCard(currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
+			tmp.clear();
+		}
 
 		// 下面考虑火箭
 		currentType = (int)CardComboType::ROCKET;
 		if (counts[13] == 1 && counts[14] == 1)
 		{
-			int size = deck.size();
-			tmp.push_back(deck[size - 1]);
-			tmp.push_back(deck[size - 2]);
+			tmp.push_back(deck[Size - 1]);
+			tmp.push_back(deck[Size - 2]);
 			allCombos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
 		}
+
+		// 好了，现在都考虑完了，在下面愉快地使用allCombos作出决策吧！
 	}
 
 	/**
@@ -588,7 +801,6 @@ struct CardCombo
 				for (int j = 0; j < mainPackCount; j++)
 				{
 					int level = packs[j].level + i; // 增加后对应的牌 
-
 													// 各种连续牌型的主牌不能到2，非连续牌型的主牌不能到小王，单张的主牌不能超过大王
 					if ((comboType == CardComboType::SINGLE && level > MAX_LEVEL) ||
 						(isSequential && level > MAX_STRAIGHT_LEVEL) ||
@@ -637,6 +849,7 @@ struct CardCombo
 			next:
 				; // 再增大
 			}
+
 		findSol:
 			int sumOfSol = myCombos.size();
 			if (sumOfSol == 0) //没找到可行解，直接去找炸弹 
@@ -705,7 +918,35 @@ struct CardCombo
 	}
 }; //end class CardCombo
 
-   // 我的牌有哪些
+   // SearchCard()的具体实现 
+   /**
+   * 参数解释：
+   * comboType:当前所要搜索的牌型；currentLevel:当前搜到的手牌中的等级；cardType:要搜的牌类型(1为单张2为对子)；
+   * already:已经搜到的数量；target:目标数量；tmp:当前考虑的可能牌型；deck:手牌；counts: 某个等级牌的数量
+   * beginOfCounts:某等级在手牌中的起始位置；levelOf_:三(四)条的等级(我们要搜的牌不能是这个等级的)
+   */
+void SearchCard(int& comboType, int currentLevel, short cardType, short already, int& target, vector<short>& tmp, vector<short>& deck, short* counts, short* beginOfCounts, set<Level>& levelOf_)
+{
+	if (already == target)
+	{
+		allCombos[comboType].push_back(CardCombo(tmp.begin(), tmp.end()));
+		return;
+	}
+	short off = target - already; //还差多少张
+	for (int i = currentLevel; i <= 13 - off; i++)
+		// 当前等级的牌必须1.张数>=cardType,2.不能是levelOf_里的
+		if (counts[i] >= cardType && !levelOf_.count(i))
+		{
+			int l = beginOfCounts[i];   // 找到等级i的牌在deck中的位置
+			for (int j = 0; j < cardType; j++)
+				tmp.push_back(deck[l + j]);
+			SearchCard(comboType, i, cardType, already + 1, target, tmp, deck, counts, beginOfCounts, levelOf_);
+			for (int j = 0; j < cardType; j++)
+				tmp.pop_back(); // 回溯
+		}
+}
+
+// 我的牌有哪些
 set<Card> myCards;
 
 // 地主被明示的牌有哪些
