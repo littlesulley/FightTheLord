@@ -775,7 +775,7 @@ struct CardCombo
 						short firstSingle = -1;
 						for(int j = 0; j < Size; j++)
 						{
-							// 不拆对子,如果最小的单张都比较大(>Q),就保留 
+							// 尽量不拆对子,但如果最小的单张都比较大(>Q),就保留 
 							Level level = allCombos[1][j].comboLevel;
 							if(counts[level] == 2 && firstPair == -1) 
 								firstPair = j;
@@ -789,9 +789,10 @@ struct CardCombo
 							} 
 						}
 						// 到这里，最小的单张都>Q了，考虑最小的对子
-						// 如果最小的对子<Q，就到下一步出对子
+						// 如果最小的对子<Q，或者没有单独的单张，就到下一步出对子
 						// 否则还是出单张 
-						if(firstPair < 9 && firstPair != -1) break;
+						if((firstPair < 9 && firstPair != -1) ||
+						    firstSingle == -1) break;
 						else 
 							return allCombos[1][firstSingle];
 						break;
