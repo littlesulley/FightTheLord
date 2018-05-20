@@ -812,7 +812,7 @@ struct CardCombo
 		if (comboType == CardComboType::PASS) // 如果不需要大过谁，就轮到自己出牌 
 			return myGivenCombo(begin, end);
 
-		// 我是农民且上次出牌的是队友且出的牌比较大(>8)，就不出
+		// 我是农民且上次出牌的是队友且出的牌比较大(>=8)，就不出
 		if (myPosition != 0 &&
 			lastPlayer != 0 &&
 			comboLevel >= 8)
@@ -919,14 +919,9 @@ struct CardCombo
 			// 下面对所有可能解进行判断
 			{
 				vector<short> bestSol;
-				// 1.我是农民，接地主的牌，若地主出的比较大，我也就次大或最大的牌 
+				// 1.我是农民，接地主的牌，若地主出的比较大，我就出次大或最大的牌 
 				if (myPosition != 0 && lastPlayer == 0 && comboLevel > 7)
-				{
-					if(comboType == CardComboType::SINGLE && sumOfSol > 1 &&
-					  (counts[13] || counts[14]))
-						bestSol = myCombos[sumOfSol - 2];
-					else bestSol = myCombos[sumOfSol - 1];
-				}
+					bestSol = myCombos[(sumOfSol-1)*2/3];
 				// 2.我是农民，接地主的牌且地主出的比较小，我就跟牌 
 				else if(myPosition != 0 && lastPlayer == 0)
 					bestSol = myCombos[0];
