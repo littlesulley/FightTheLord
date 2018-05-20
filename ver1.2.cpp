@@ -736,7 +736,8 @@ struct CardCombo
 		short counts[MAX_LEVEL + 1] = {};
 		for (Card c : deck)
 			counts[card2level(c)]++;  
-			
+		short need[19] = {0,1,2,0,0,3,4,5,4,6,8,3,4,5,4,6,8,2}; // 每种牌型需要的牌数
+		 
 		// 出牌次序
 		int order[19] = { 0,3,4,16,15,14,13,12,11,10,9,7,6,5,1,2,8,17 };
 		
@@ -764,10 +765,17 @@ struct CardCombo
 					case 14:
 					case 15:
 					case 16:
-						for(int j = 0; j < Size; j++)
-							if(allCombos[order[i]][j].comboLevel < 9)
-								return allCombos[order[i]][j];
-						break;
+					{
+						if(deck.size() - need[order[i]] <= 1)
+						   return allCombos[order[i]][0];
+						else
+						{
+							for(int j = 0; j < Size; j++)
+								if(allCombos[order[i]][j].comboLevel < 9)
+									return allCombos[order[i]][j];	
+						}	
+						break;				
+					}	
 					// 下面考虑单张 
 					case 1:
 					{
