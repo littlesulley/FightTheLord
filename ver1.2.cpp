@@ -1064,7 +1064,7 @@ void SearchCard(int& comboType, int currentLevel, short cardType, short already,
 			int l = beginOfCounts[i];   // 找到等级i的牌在deck中的位置
 			for (int j = 0; j < cardType; j++)
 				tmp.push_back(deck[l + j]);
-			SearchCard(comboType, i,+1 cardType, already + 1, target, tmp, deck, counts, beginOfCounts, levelOf_);
+			SearchCard(comboType, i+1, cardType, already + 1, target, tmp, deck, counts, beginOfCounts, levelOf_);
 			for (int j = 0; j < cardType; j++)
 				tmp.pop_back(); // 回溯
 		}
