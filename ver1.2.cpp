@@ -25,6 +25,7 @@ int lastPlayer;
 
 struct CardCombo;
 vector<CardCombo> allCombos[20]; // 当前手牌的所有可能组合 
+vector<CardCombo> allPosibleCombos[20]//场上可能存在的所有的牌的组合
 
 void SearchCard(int&, int, short, short, int&, vector<short>&, vector<short>&, short*, short*, set<short>&);
 
@@ -1072,6 +1073,7 @@ void SearchCard(int& comboType, int currentLevel, short cardType, short already,
 
 // 我的牌有哪些
 set<Card> myCards;
+set<Card>remainCards;
 
 // 地主被明示的牌有哪些
 set<Card> landlordPublicCards;
@@ -1102,6 +1104,8 @@ namespace BotzoneIO
 			auto history = firstRequest["history"];
 			for (unsigned i = 0; i < own.size(); i++)  //我的牌 
 				myCards.insert(own[i].asInt());
+			for(unsigned i=0;i<54;i++)
+				remainCards.insert(i)
 			for (unsigned i = 0; i < llpublic.size(); i++) // 地主被公开的三张牌 
 				landlordPublicCards.insert(llpublic[i].asInt());
 			if (history[0u].size() == 0)
@@ -1131,6 +1135,7 @@ namespace BotzoneIO
 				{
 					int card = playerAction[_].asInt(); // 这里是出的一张牌
 					playedCards.push_back(card);
+					remainCards.erase(card)
 				}
 				whatTheyPlayed[player].push_back(playedCards); // 记录这段历史
 				cardRemaining[player] -= playerAction.size();
@@ -1156,7 +1161,9 @@ namespace BotzoneIO
 				for (unsigned _ = 0; _ < playerAction.size(); _++) // 循环枚举自己出的所有牌
 				{
 					int card = playerAction[_].asInt(); // 这里是自己出的一张牌
+
 					myCards.erase(card); // 从自己手牌中删掉
+					remainCards.erase(card)
 					playedCards.push_back(card);
 				}
 				whatTheyPlayed[myPosition].push_back(playedCards); // 记录这段历史
