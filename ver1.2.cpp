@@ -25,7 +25,6 @@ int lastPlayer;
 
 struct CardCombo;
 vector<CardCombo> allCombos[20]; // 当前手牌的所有可能组合 
-vector<CardCombo> allPosibleCombos[20]//场上可能存在的所有的牌的组合
 
 void SearchCard(int&, int, short, short, int&, vector<short>&, vector<short>&, short*, short*, set<short>&);
 
@@ -143,7 +142,7 @@ struct CardCombo
 	vector<CardPack> packs; // 按数目和大小排序的牌种
 	CardComboType comboType; // 算出的牌型
 	Level comboLevel = 0; // 算出的大小序
-	 
+
 	bool operator<(const CardCombo& c) const
 	{
 		if (cards.size() != c.cards.size())
@@ -652,7 +651,7 @@ struct CardCombo
 			for (Card c : tmp)
 				levels.insert(card2level(c));
 			int levelCount = levels.size(); // 一共需要这么多张单张
-			// 下面枚举所有可能的从牌
+											// 下面枚举所有可能的从牌
 			SearchCard(currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
 		}
 
@@ -714,102 +713,102 @@ struct CardCombo
 		// 首先找到所有可能的组合
 		findAllCombos(begin, end);
 		// 现在vector<vector<Card> > allCombos[20]已经完成赋值，下面对它进行选择 
- 
- 		// 先考虑一种特殊情况：对方(即和自己对立的一方)只有一张牌了，
+
+		// 先考虑一种特殊情况：对方(即和自己对立的一方)只有一张牌了，
 		// 我就只能出牌数>=2的牌；若只有单张，则只能从大打到小
-		if((myPosition != 0 && cardRemaining[0] ==1) ||
-		   (myPosition ==0 && (cardRemaining[1] == 1 || cardRemaining[2] == 1)))
+		if ((myPosition != 0 && cardRemaining[0] == 1) ||
+			(myPosition == 0 && (cardRemaining[1] == 1 || cardRemaining[2] == 1)))
 		{
-			if(allCombos[2].size()) 
+			if (allCombos[2].size())
 				return allCombos[2][0];
 			else
 			{
 				int Size = allCombos[1].size();
-				if(Size)
-					return allCombos[1][Size-1];
+				if (Size)
+					return allCombos[1][Size - 1];
 			}
 		}
 		// 下面考虑其他情况，先把牌排序
 		for (int i = 1; i < 18; i++)
 			sort(allCombos[i].begin(), allCombos[i].end());
-		
+
 		auto deck = vector<Card>(begin, end);
 		short counts[MAX_LEVEL + 1] = {};
 		for (Card c : deck)
-			counts[card2level(c)]++;  
-		short need[19] = {0,1,2,0,0,3,4,5,4,6,8,3,4,5,4,6,8,2}; // 每种牌型需要的牌数
-		 
-		// 出牌次序
+			counts[card2level(c)]++;
+		short need[19] = { 0,1,2,0,0,3,4,5,4,6,8,3,4,5,4,6,8,2 }; // 每种牌型需要的牌数
+
+																  // 出牌次序
 		int order[19] = { 0,3,4,16,15,14,13,12,11,10,9,7,6,5,1,2,8,17 };
-		
+
 		// 双方都按照这个次序出牌
 		for (int i = 1; i < 19; i++)
 		{
 			int Size = allCombos[order[i]].size();
 			if (Size)
 			{
-				switch(order[i])
+				switch (order[i])
 				{
 					// 双顺不要超过 K
-					case 4:
-						for(int j = 0; j < Size; j++)
-							if(allCombos[4][j].comboLevel < 10)
-								return allCombos[4][j];
-						break;
+				case 4:
+					for (int j = 0; j < Size; j++)
+						if (allCombos[4][j].comboLevel < 10)
+							return allCombos[4][j];
+					break;
 					// 三带x，飞机带x，航天飞机带x，最大的牌不要超过 Q
-					case 5:
-					case 6:
-					case 7:
-					case 11:
-					case 12:
-					case 13:
-					case 14:
-					case 15:
-					case 16:
-					{
-						if(deck.size() - need[order[i]] <= 1)
-						   return allCombos[order[i]][0];
-						else
-						{
-							for(int j = 0; j < Size; j++)
-								if(allCombos[order[i]][j].comboLevel < 9)
-									return allCombos[order[i]][j];	
-						}	
-						break;				
-					}	
-					// 下面考虑单张 
-					case 1:
-					{
-						short firstPair = -1;
-						short firstSingle = -1;
-						for(int j = 0; j < Size; j++)
-						{
-							// 尽量不拆对子,但如果最小的单张都比较大(>Q),就保留 
-							Level level = allCombos[1][j].comboLevel;
-							if(counts[level] == 2 && firstPair == -1) 
-								firstPair = j;
-							else if(counts[level] == 1)
-							{
-								if(firstSingle == -1) 
-									firstSingle = j;
-								if(level <= 9)
-									return allCombos[1][j];
-								else break;
-							} 
-						}
-						// 到这里，最小的单张都>Q了，考虑最小的对子
-						// 如果最小的对子<Q，或者没有单独的单张，就到下一步出对子
-						// 否则还是出单张 
-						if((firstPair < 9 && firstPair != -1) ||
-						    firstSingle == -1) break;
-						else 
-							return allCombos[1][firstSingle];
-						break;
-					}
-					default: // 其他的就依次出即可 
+				case 5:
+				case 6:
+				case 7:
+				case 11:
+				case 12:
+				case 13:
+				case 14:
+				case 15:
+				case 16:
+				{
+					if (deck.size() - need[order[i]] <= 1)
 						return allCombos[order[i]][0];
+					else
+					{
+						for (int j = 0; j < Size; j++)
+							if (allCombos[order[i]][j].comboLevel < 9)
+								return allCombos[order[i]][j];
+					}
+					break;
 				}
-			} 
+				// 下面考虑单张 
+				case 1:
+				{
+					short firstPair = -1;
+					short firstSingle = -1;
+					for (int j = 0; j < Size; j++)
+					{
+						// 尽量不拆对子,但如果最小的单张都比较大(>Q),就保留 
+						Level level = allCombos[1][j].comboLevel;
+						if (counts[level] == 2 && firstPair == -1)
+							firstPair = j;
+						else if (counts[level] == 1)
+						{
+							if (firstSingle == -1)
+								firstSingle = j;
+							if (level <= 9)
+								return allCombos[1][j];
+							else break;
+						}
+					}
+					// 到这里，最小的单张都>Q了，考虑最小的对子
+					// 如果最小的对子<Q，或者没有单独的单张，就到下一步出对子
+					// 否则还是出单张 
+					if ((firstPair < 9 && firstPair != -1) ||
+						firstSingle == -1) break;
+					else
+						return allCombos[1][firstSingle];
+					break;
+				}
+				default: // 其他的就依次出即可 
+					return allCombos[order[i]][0];
+				}
+			}
 		}
 		return CardCombo();
 	}
@@ -882,7 +881,7 @@ struct CardCombo
 				for (int j = 0; j < mainPackCount; j++)
 				{
 					int level = packs[j].level + i; // 增加后对应的牌 
-					// 各种连续牌型的主牌不能到2，非连续牌型的主牌不能到小王，单张的主牌不能超过大王
+													// 各种连续牌型的主牌不能到2，非连续牌型的主牌不能到小王，单张的主牌不能超过大王
 					if ((comboType == CardComboType::SINGLE && level > MAX_LEVEL) ||
 						(isSequential && level > MAX_STRAIGHT_LEVEL) ||
 						(comboType != CardComboType::SINGLE && !isSequential && level >= level_joker))
@@ -904,7 +903,7 @@ struct CardCombo
 					short requiredCounts[MAX_LEVEL + 1] = {};
 					for (int j = 0; j < mainPackCount; j++)  // 主牌 
 						requiredCounts[packs[j].level + i] = packs[j].count;
-					
+
 					unsigned int currentHave = 0; // 看看当前要求的从牌是否足够 
 					for (unsigned j = mainPackCount; j < packs.size(); j++) // 从牌，就依次从当前手牌最小的选起
 						for (Level k = 0; k <= MAX_LEVEL; k++)
@@ -916,7 +915,7 @@ struct CardCombo
 							break;
 						}
 					// 如果可以的话，将这个可行解放入可行解数组 
-					if(currentHave == packs.size() - mainPackCount)
+					if (currentHave == packs.size() - mainPackCount)
 						myCombos.push_back(vector<short>(requiredCounts, requiredCounts + MAX_LEVEL + 1));
 				}
 
@@ -928,51 +927,51 @@ struct CardCombo
 			int sumOfSol = myCombos.size();
 			if (!sumOfSol) //没找到可行解，直接去找炸弹 
 				goto failure;
-				
+
 			// 先特判一下单张的情况，尽量不拆对子/三条
-			if(comboType == CardComboType::SINGLE)
+			if (comboType == CardComboType::SINGLE)
 			{
 				int haveSingleSol = 0; // 是单牌的数量 
-				for(auto it = myCombos.begin(); it != myCombos.end(); ++it)
+				for (auto it = myCombos.begin(); it != myCombos.end(); ++it)
 				{
 					int level = -1;
-					for(int j = 0; j < MAX_LEVEL + 1; j++)
-						if((*it)[j])
+					for (int j = 0; j < MAX_LEVEL + 1; j++)
+						if ((*it)[j])
 						{
 							level = j;
 							break;
 						}
-					if(counts[level] == 1)
+					if (counts[level] == 1)
 						haveSingleSol++;
 				}
-				if(haveSingleSol) // 如果有单牌 
+				if (haveSingleSol) // 如果有单牌 
 				{
 					sumOfSol = haveSingleSol; // 把其他的非单牌从myCombos中去除 
-					for(auto it = myCombos.begin(); it != myCombos.end(); )
+					for (auto it = myCombos.begin(); it != myCombos.end(); )
 					{
 						int level = -1;
-						for(int j = 0; j < MAX_LEVEL + 1; j++)
-							if((*it)[j])
+						for (int j = 0; j < MAX_LEVEL + 1; j++)
+							if ((*it)[j])
 							{
 								level = j;
 								break;
 							}
-						if(counts[level] > 1)
+						if (counts[level] > 1)
 							myCombos.erase(it);
 						else ++it;
 					}
 				}
 				// 否则就维持原样 
-			} 
-			
+			}
+
 			// 除了单张之外，下面对所有可能解进行判断
 			{
 				vector<short> bestSol;
 				// 1.我是农民，接地主的牌，若地主出的比较大，我就出次大或最大的牌 
 				if (myPosition != 0 && lastPlayer == 0 && comboLevel > 7)
-					bestSol = myCombos[(sumOfSol-1)*2/3];
+					bestSol = myCombos[(sumOfSol - 1) * 2 / 3];
 				// 2.我是农民，接地主的牌且地主出的比较小，我就跟牌 
-				else if(myPosition != 0 && lastPlayer == 0)
+				else if (myPosition != 0 && lastPlayer == 0)
 					bestSol = myCombos[0];
 				// 3.我是农民，接农民的牌，跟牌 
 				else if (myPosition != 0 && lastPlayer != 0)
@@ -981,8 +980,8 @@ struct CardCombo
 				else if (myPosition == 0 && comboLevel < 7)
 					bestSol = myCombos[0];
 				// 5.我是地主，接农民的牌，若出的牌比较大，就出中间的牌
-				else if(myPosition == 0 && comboLevel >= 7)
-					bestSol = myCombos[(sumOfSol-1)/2];
+				else if (myPosition == 0 && comboLevel >= 7)
+					bestSol = myCombos[(sumOfSol - 1) / 2];
 
 				// 开始产生解
 				vector<Card> solve;
@@ -1011,8 +1010,8 @@ struct CardCombo
 					((comboType == CardComboType::PAIR || comboType == CardComboType::TRIPLET || comboType == CardComboType::TRIPLET1 || comboType == CardComboType::TRIPLET2) && comboLevel == 12)))
 					return CardCombo(bomb, bomb + 4);
 				else if (myPosition == 0 &&
-						(cards.size() >= 5 ||
-						(cardRemaining[1] <= 10 || cardRemaining[2] <= 10) ||
+					(cards.size() >= 5 ||
+					(cardRemaining[1] <= 10 || cardRemaining[2] <= 10) ||
 						((comboType == CardComboType::PAIR || comboType == CardComboType::TRIPLET || comboType == CardComboType::TRIPLET1 || comboType == CardComboType::TRIPLET2) && comboLevel == 12)))
 					return CardCombo(bomb, bomb + 4);
 			}
@@ -1026,8 +1025,8 @@ struct CardCombo
 				((comboType == CardComboType::PAIR || comboType == CardComboType::TRIPLET || comboType == CardComboType::TRIPLET1 || comboType == CardComboType::TRIPLET2) && comboLevel == 12)))
 				return CardCombo(rocket, rocket + 2);
 			else if (myPosition == 0 &&
-					(cards.size() >= 5 ||
-					(cardRemaining[1] <= 10 || cardRemaining[2] <= 10) ||
+				(cards.size() >= 5 ||
+				(cardRemaining[1] <= 10 || cardRemaining[2] <= 10) ||
 					((comboType == CardComboType::PAIR || comboType == CardComboType::TRIPLET || comboType == CardComboType::TRIPLET1 || comboType == CardComboType::TRIPLET2) && comboLevel == 12)))
 				return CardCombo(rocket, rocket + 2);
 		}
@@ -1065,7 +1064,7 @@ void SearchCard(int& comboType, int currentLevel, short cardType, short already,
 			int l = beginOfCounts[i];   // 找到等级i的牌在deck中的位置
 			for (int j = 0; j < cardType; j++)
 				tmp.push_back(deck[l + j]);
-			SearchCard(comboType, i+1, cardType, already + 1, target, tmp, deck, counts, beginOfCounts, levelOf_);
+			SearchCard(comboType, i + 1, cardType, already + 1, target, tmp, deck, counts, beginOfCounts, levelOf_);
 			for (int j = 0; j < cardType; j++)
 				tmp.pop_back(); // 回溯
 		}
@@ -1073,7 +1072,6 @@ void SearchCard(int& comboType, int currentLevel, short cardType, short already,
 
 // 我的牌有哪些
 set<Card> myCards;
-set<Card>remainCards;
 
 // 地主被明示的牌有哪些
 set<Card> landlordPublicCards;
@@ -1104,8 +1102,6 @@ namespace BotzoneIO
 			auto history = firstRequest["history"];
 			for (unsigned i = 0; i < own.size(); i++)  //我的牌 
 				myCards.insert(own[i].asInt());
-			for(unsigned i=0;i<54;i++)
-				remainCards.insert(i)
 			for (unsigned i = 0; i < llpublic.size(); i++) // 地主被公开的三张牌 
 				landlordPublicCards.insert(llpublic[i].asInt());
 			if (history[0u].size() == 0)
@@ -1135,7 +1131,6 @@ namespace BotzoneIO
 				{
 					int card = playerAction[_].asInt(); // 这里是出的一张牌
 					playedCards.push_back(card);
-					remainCards.erase(card)
 				}
 				whatTheyPlayed[player].push_back(playedCards); // 记录这段历史
 				cardRemaining[player] -= playerAction.size();
@@ -1161,9 +1156,7 @@ namespace BotzoneIO
 				for (unsigned _ = 0; _ < playerAction.size(); _++) // 循环枚举自己出的所有牌
 				{
 					int card = playerAction[_].asInt(); // 这里是自己出的一张牌
-
 					myCards.erase(card); // 从自己手牌中删掉
-					remainCards.erase(card)
 					playedCards.push_back(card);
 				}
 				whatTheyPlayed[myPosition].push_back(playedCards); // 记录这段历史

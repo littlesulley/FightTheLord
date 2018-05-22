@@ -25,7 +25,6 @@ int lastPlayer;
 
 struct CardCombo;
 vector<CardCombo> allCombos[20]; // 当前手牌的所有可能组合 
-vector<CardCombo> allPosibleCombos[20]//场上可能存在的所有的牌的组合
 
 void SearchCard(int&, int, short, short, int&, vector<short>&, vector<short>&, short*, short*, set<short>&);
 
@@ -456,7 +455,7 @@ struct CardCombo
 			{
 				int haveSeq = -1;
 				for (int i = l; i <= r; i++)
-					if (!counts[i]||counts[i]>3)
+					if (!counts[i]|| counts[i]>3)
 					{
 						haveSeq = i; // 在haveSeq处间断 
 						break;
@@ -479,7 +478,7 @@ struct CardCombo
 			{
 				int haveSeq = -1;
 				for (int i = l; i <= r; i++)
-					if (counts[i] < 2 || counts[i]>3)
+					if (counts[i] < 2|| counts[i]>3)
 					{
 						haveSeq = i;
 						break;
@@ -534,7 +533,7 @@ struct CardCombo
 			vector<Card> mainCards = allCombos[Triple][i].cards;
 			int mainLevel = allCombos[Triple][i].comboLevel;
 			for (int j = 0; j < 15; j++)
-				if (j != mainLevel && counts[j]<3) // 三带一不能带相同的，不然就成炸弹了
+				if (j != mainLevel && counts[j]&& counts[j]<2) // 三带一不能带相同的，不然就成炸弹了
 				{
 					vector<Card> tmp = mainCards;
 					tmp.push_back(deck[beginOfCounts[j]]);
@@ -737,10 +736,10 @@ struct CardCombo
 		short counts[MAX_LEVEL + 1] = {};
 		for (Card c : deck)
 			counts[card2level(c)]++;
-		short need[19] = { 0,1,2,0,0,3,4,5,4,6,8,3,4,5,4,6,8,2 }; // 每种牌型需要的牌数
+		short need[19] = { 0,4,10,8,6,5,4,3,5,1,2,4,6,6,2,8,10,12 }; // 每种牌型需要的牌数
 
 																  // 出牌次序
-		int order[19] = { 0,4,16,15,14,13,12,11,10,9,3,7,6,5,1,2,8,17 };
+		int order[19] = { 0,4,13,12,11,7,6,5,3,1,2,8,10,9,17,14,15,16 };
 
 		// 双方都按照这个次序出牌
 		for (int i = 1; i < 19; i++)
@@ -1073,7 +1072,6 @@ void SearchCard(int& comboType, int currentLevel, short cardType, short already,
 
 // 我的牌有哪些
 set<Card> myCards;
-set<Card>remainCards;
 
 // 地主被明示的牌有哪些
 set<Card> landlordPublicCards;
@@ -1104,10 +1102,8 @@ namespace BotzoneIO
 			auto history = firstRequest["history"];
 			for (unsigned i = 0; i < own.size(); i++)  //我的牌 
 				myCards.insert(own[i].asInt());
-			for (unsigned i = 0; i<54; i++)
-				remainCards.insert(i)
-				for (unsigned i = 0; i < llpublic.size(); i++) // 地主被公开的三张牌 
-					landlordPublicCards.insert(llpublic[i].asInt());
+			for (unsigned i = 0; i < llpublic.size(); i++) // 地主被公开的三张牌 
+				landlordPublicCards.insert(llpublic[i].asInt());
 			if (history[0u].size() == 0)
 				if (history[1].size() == 0)
 					myPosition = 0; // 上上家和上家都没出牌，说明是地主
@@ -1135,7 +1131,6 @@ namespace BotzoneIO
 				{
 					int card = playerAction[_].asInt(); // 这里是出的一张牌
 					playedCards.push_back(card);
-					remainCards.erase(card)
 				}
 				whatTheyPlayed[player].push_back(playedCards); // 记录这段历史
 				cardRemaining[player] -= playerAction.size();
@@ -1161,10 +1156,8 @@ namespace BotzoneIO
 				for (unsigned _ = 0; _ < playerAction.size(); _++) // 循环枚举自己出的所有牌
 				{
 					int card = playerAction[_].asInt(); // 这里是自己出的一张牌
-
 					myCards.erase(card); // 从自己手牌中删掉
-					remainCards.erase(card)
-						playedCards.push_back(card);
+					playedCards.push_back(card);
 				}
 				whatTheyPlayed[myPosition].push_back(playedCards); // 记录这段历史
 				cardRemaining[myPosition] -= playerAction.size();
