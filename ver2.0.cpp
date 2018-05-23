@@ -1,7 +1,7 @@
 // 斗地主（FightTheLandlord）样例程序
-// 无脑策略
-// 作者：zhouhy
-// 游戏信息：http://www.botzone.org/games#FightTheLandlord
+// 使用估值函数，并用动态规划寻找最优估值的分牌法，在出牌的时候考虑回手率
+// 作者：littlesulley, boblytton, gxb********
+// 游戏信息：https://github.com/littlesulley/FightTheLord
 
 #include <iostream>
 #include <set>
@@ -197,7 +197,7 @@ struct CardCombo
 	int getValue() const;
 
 	// 创建一个空牌组
-	CardCombo() : comboType(CardComboType::PASS) {}
+	CardCombo() : comboType(CardComboType::PASS), value(0) {}
 
 	/**
 	 * 通过Card（即short）类型的迭代器创建一个牌型
@@ -208,7 +208,7 @@ struct CardCombo
 	 // 模板构造函数，通过CARD迭代器计算出当前牌型
 	 // 功能是创建一个牌型
 	template <typename CARD_ITERATOR>
-	CardCombo(CARD_ITERATOR begin, CARD_ITERATOR end)
+	CardCombo(CARD_ITERATOR begin, CARD_ITERATOR end): value(0)
 	{
 		// 特判：空
 		if (begin == end) //如果没有牌出了就PASS 
@@ -822,7 +822,8 @@ int best_combo_dp(CardCombo mydeck){
  */
 template<typename CARD_ITERATOR>
 CardCombo CardCombo::myGivenCombo(CARD_ITERATOR begin, CARD_ITERATOR end) const {
-	return CardCombo();
+	best_combo_dp(*this);
+	return map_best_combos.find(*this)->second.at(0);
 }
 
 /**
