@@ -17,6 +17,8 @@ using std::sort;
 using std::unique;
 using std::set;
 using std::string;
+using std::multimap;
+using std::make_pair;
 
 constexpr int PLAYER_COUNT = 3;
 
@@ -143,7 +145,8 @@ struct CardCombo
 	Level comboLevel = 0; 						// 算出的大小序
 	int value;									// 当前牌型的最佳权值（分解后）
 
-	CardCombo operator-(const CardCombo& a) const{
+	//reload operator '-' to apply in dp, 'CardCombo a - CardCombo b' means the CardCombo remained when cards in b are removed from cards in a
+	CardCombo operator - (const CardCombo& a) const{
 		vector<Card> tmp_cards(cards);
 		for(vector<Card>::iterator i = tmp_cards.begin(); i < tmp_cards.end(); ++i){
 			for(Card j : a.cards){				//在a.cards中查找牌i
@@ -158,6 +161,10 @@ struct CardCombo
 		return temp;
 	}
 
+	//reload operator '<' to apply in multimap, 'CardCombo a < CardCombo b' means 'a.value < b.value'
+	bool operator < (const CardCombo& a) const {
+		return value < a.value;
+	}
 	/**
 	 * 检查个数最多的CardPack递减了几个, 如：887766 ==> findMaxSeq=3; 88877734 ==> findMaxSeq=2
 	 */
@@ -411,7 +418,7 @@ struct CardCombo
 	 * 我方主动出牌所出的牌
 	 */
 	template<typename CARD_ITERATOR>
-	CardCombo myGivenCombo(CARD_ITERATOR begin, CARD_ITERATOR end);
+	CardCombo myGivenCombo(CARD_ITERATOR begin, CARD_ITERATOR end) const;
 
 	/**
 	 * 若先出牌，找出最优解
@@ -436,79 +443,8 @@ struct CardCombo
  * 计算该牌型的权值
  */
 int CardCombo::getValue() const {
-
+	return 0;
 }
-
-vector<Card> temp_combo; 			//当前尝试的分解
-vector<CardCombo> best_combo;		//记忆化搜索的分解
-/*
-//using dfs
-void find_all(CardCombo thisdeck, vector<CardCombo>& memory_vec, int combo_type, vector<Card>& tempCombo){
-    switch(combo_type){
-    case 0:    			// 过
-        return;
-	case 1:    			// 单张 
-	{            
-        for(Card i : thisdeck.cards){   //对单张用cards枚举
-            tempCombo.push_back(i);
-            memory_vec.push_back(CardCombo(tempCombo.begin(), tempCombo.end()));
-        }
-		tempCombo.clear();
-        return;
-	}
-	case 2:          	// 对子       
-	{
-	   	int counts[MAX_LEVEL + 1] = { 0 };
-        for(Card i : thisdeck.cards){
-            counts[card2level(i)]++;
-
-        }
-		tempCombo.clear();
-		return;
-	}
-	case 3:      		// 顺子             
-        return;
-	case 4:     		// 双顺             
-        return;
-	case 5:       		// 三条             
-        return;
-	case 6:      		// 三带一           
-        return;
-	case 7:      		// 三带二           
-        return;
-	case 8:          	// 炸弹             
-        return;
-	case 9:    			// 四带二（只）         
-        return;
-	case 10:    		// 四带二（对）     
-        return;
-	case 11:         	// 飞机                
-        return;
-	case 12:        	// 飞机带小翼         
-        return;
-	case 13:        	// 飞机带大翼         
-        return;
-	case 14:      		// 航天飞机         
-        return;
-	case 15:     		// 航天飞机带小翼  
-        return;
-	case 16:     		// 航天飞机带大翼 
-        return;
-	case 17:        	// 火箭    
-	{
-		for(Card i : )
-        return;
-	}
-	case 18:       		// 非法牌型(非法牌型就不要手动枚举了，那太多了)
-        return;
-    }
-}
-void find_all_combos(CardCombo thisdeck, vector<CardCombo>& memory_vec){
-    for(int i = 0; i < 17; ++i){
-        find_all(thisdeck, memory_vec, i, temp_combo);
-    }
-}
-*/
 
 // SearchCard()的具体实现 
 /**
@@ -517,7 +453,8 @@ void find_all_combos(CardCombo thisdeck, vector<CardCombo>& memory_vec){
  * already:已经搜到的数量；target:目标数量；tmp:当前考虑的可能牌型；deck:手牌；counts: 某个等级牌的数量
  * beginOfCounts:某等级在手牌中的起始位置；levelOf_:三(四)条的等级(我们要搜的牌不能是这个等级的)
  */
-void SearchCard(int& comboType, int currentLevel, short cardType, short already, int& target, vector<short>& tmp, vector<short>& deck, short* counts, short* beginOfCounts, set<Level>& levelOf_)
+void SearchCard(int& comboType, int currentLevel, short cardType, short already, int& target, 
+	vector<short>& tmp, vector<short>& deck, short* counts, short* beginOfCounts, set<Level>& levelOf_, vector<CardCombo>* allCombos)
 {
 	if (already == target)
 	{
@@ -532,7 +469,7 @@ void SearchCard(int& comboType, int currentLevel, short cardType, short already,
 			int l = beginOfCounts[i];   // 找到等级i的牌在deck中的位置
 			for (int j = 0; j < cardType; j++)
 				tmp.push_back(deck[l + j]);
-			SearchCard(comboType, i+1, cardType, already + 1, target, tmp, deck, counts, beginOfCounts, levelOf_);
+			SearchCard(comboType, i+1, cardType, already + 1, target, tmp, deck, counts, beginOfCounts, levelOf_, allCombos);
 			for (int j = 0; j < cardType; j++)
 				tmp.pop_back(); // 回溯
 		}
@@ -540,15 +477,15 @@ void SearchCard(int& comboType, int currentLevel, short cardType, short already,
 
 void findAllCombos(CardCombo& thisdeck, vector<CardCombo>* allCombos)
 {
-	auto deck = thisdeck.cards;		//把thisdeck的cards序列传给deck
+	auto deck = thisdeck.cards;					//把thisdeck的cards序列传给deck
 	short counts[MAX_LEVEL + 1] = {};
-	short beginOfCounts[MAX_LEVEL + 1] = {}; //  每个等级牌在手牌中的起始位置
-	int currentType;   // 当前枚举类型 
-	int Size = deck.size();// 当前手牌数量
+	short beginOfCounts[MAX_LEVEL + 1] = {}; 	// 每个等级牌在手牌中的起始位置
+	int currentType;   							// 当前枚举类型 
+	int Size = deck.size();						// 当前手牌数量
 
-	sort(deck.begin(), deck.end()); //先排个序再说吧... 
+	sort(deck.begin(), deck.end()); 			//先排个序再说吧... 按照牌的数字
 	for (Card c : deck)
-		counts[card2level(c)]++;  // 数一下各等级的牌有多少
+		counts[card2level(c)]++;  				// 数一下各等级的牌有多少
 
 	for (int i = 1; i <= 14; i++)
 		beginOfCounts[i] = beginOfCounts[i - 1] + counts[i - 1];
@@ -583,7 +520,7 @@ void findAllCombos(CardCombo& thisdeck, vector<CardCombo>* allCombos)
 		{
 			int haveSeq = -1;
 			for (int i = l; i <= r; i++)
-				if (!counts[i])
+				if (!counts[i])		//counts[i] == 0
 				{
 					haveSeq = i; // 在haveSeq处间断 
 					break;
@@ -780,7 +717,7 @@ void findAllCombos(CardCombo& thisdeck, vector<CardCombo>* allCombos)
 			levels.insert(card2level(c));
 		int levelCount = levels.size(); // 一共需要这么多张单张
 		// 下面枚举所有可能的从牌
-		SearchCard(currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
+		SearchCard(currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels, allCombos);
 	}
 
 	// 下面枚举飞机带大翼
@@ -792,7 +729,7 @@ void findAllCombos(CardCombo& thisdeck, vector<CardCombo>* allCombos)
 		for (Card c : tmp)
 			levels.insert(card2level(c));
 		int levelCount = levels.size(); // 一共需要这么多对子
-		SearchCard(currentType, 0, 2, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
+		SearchCard(currentType, 0, 2, 0, levelCount, tmp, deck, counts, beginOfCounts, levels, allCombos);
 	}
 
 	// 下面枚举航天飞机带小翼
@@ -804,7 +741,7 @@ void findAllCombos(CardCombo& thisdeck, vector<CardCombo>* allCombos)
 		for (Card c : tmp)
 			levels.insert(card2level(c));
 		int levelCount = 2 * levels.size();
-		SearchCard(currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
+		SearchCard(currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels, allCombos);
 	}
 
 	// 下面枚举航天飞机带大翼
@@ -816,7 +753,7 @@ void findAllCombos(CardCombo& thisdeck, vector<CardCombo>* allCombos)
 		for (Card c : tmp)
 			levels.insert(card2level(c));
 		int levelCount = 2 * levels.size();
-		SearchCard(currentType, 0, 2, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
+		SearchCard(currentType, 0, 2, 0, levelCount, tmp, deck, counts, beginOfCounts, levels, allCombos);
 	}
 
 	// 下面考虑火箭
@@ -832,7 +769,8 @@ void findAllCombos(CardCombo& thisdeck, vector<CardCombo>* allCombos)
 	// 好了，现在都考虑完了，在下面愉快地使用allCombos作出决策吧！
 }
 
-std::multimap<CardCombo, int> map_value;
+multimap<CardCombo, int> map_value;						//this map gives out the biggest value of the current deck
+multimap<CardCombo, vector<CardCombo> > map_best_combos;	//this map gives out the decomposition which provides the biggest value to each deck
 
 /**
  * 按照估值函数搜索最优的牌型分解方案
@@ -842,31 +780,40 @@ std::multimap<CardCombo, int> map_value;
  */
 int best_combo_dp(CardCombo mydeck){
     int value = 0;
+	CardCombo best_single;		//for the enumerated c in the for-loop below, best_single saves the one with the biggest value
+	vector<CardCombo> best;		//best CardCombo decomposition under current mydeck
     if(map_value.find(mydeck)->second != 0){
         value = map_value.find(mydeck)->second;
 		mydeck.value = value;
-		map_value.insert(std::make_pair(mydeck, value));
+		map_value.insert(make_pair(mydeck, value));
         return value;
     }
     if(mydeck.cards.size() == 1){
         value = mydeck.getValue();
 		mydeck.value = value;
-		map_value.insert(std::make_pair(mydeck, value));
+		map_value.insert(make_pair(mydeck, value));
         return value;
     }
-    vector<CardCombo> combos_in_mydeck;
+    vector<CardCombo> combos_in_mydeck[20];		//all combos finded in this deck
     findAllCombos(mydeck, combos_in_mydeck);	//now it comes to the problem of finding all combos to form combos_in_mydeck
     
-    for(CardCombo c : combos_in_mydeck){    //the key is how to accomplish the "c : mydeck" foreach process. 
-                                            //----change into c : combos_in_mydeck
-        int c_value = c.getValue();
-        int temp_value = best_combo_dp(mydeck - c);
-        if(value < c.getValue() + temp_value){
-            value = c_value + temp_value;           //find the largest value of all dicompositions
-        }
-        map_value.insert(std::make_pair(c, value));
-    }
+	for(int i = 0; i < 17; ++i){
+		for(CardCombo c : combos_in_mydeck[i]){    	//the key is how to accomplish the "c : mydeck" foreach process. 
+													//----change into c : combos_in_mydeck
+			CardCombo minus_deck = mydeck - c;
+			int c_value = c.getValue();
+			int temp_value = best_combo_dp(minus_deck);
+			if(value < c.getValue() + temp_value){
+				value = c_value + temp_value;       //find the largest value of all decompositions
+				best = map_best_combos.find(minus_deck)->second;
+				best_single = c;
+			}
+		}
+	}
+	best.push_back(best_single);
     mydeck.value = value;
+	map_value.insert(make_pair(mydeck, value));
+	map_best_combos.insert(make_pair(mydeck, best));
     return value;
 }
 
@@ -874,10 +821,9 @@ int best_combo_dp(CardCombo mydeck){
  * 我方主动出牌所出的牌
  */
 template<typename CARD_ITERATOR>
-CardCombo CardCombo::myGivenCombo(CARD_ITERATOR begin, CARD_ITERATOR end){
-
+CardCombo CardCombo::myGivenCombo(CARD_ITERATOR begin, CARD_ITERATOR end) const {
+	return CardCombo();
 }
-//=======================================================
 
 /**
  * 若先出牌，找出最优解
@@ -1035,6 +981,7 @@ failure:
 	return CardCombo();
 } 
 // end FindFirstValid()
+//========================================================
 
 //全局对象
 CardCombo lastValidCombo;								// 当前要出的牌需要大过什么牌 
