@@ -1,4 +1,4 @@
-// 斗地主（FightTheLandlord）样例程序
+// 斗地主（FightTheLandlord）version 2.0.2
 // 使用估值函数，并用动态规划寻找最优估值的分牌法，在出牌的时候考虑回手率
 // 作者：littlesulley, boblytton, gxb********
 // 游戏信息：https://github.com/littlesulley/FightTheLord
@@ -161,9 +161,9 @@ struct CardCombo
 		return CardCombo(tmp_cards.begin(), tmp_cards.end());
 	}
 
-	//reload operator '<' to apply in multimap, 'CardCombo a < CardCombo b' means 'a.value < b.value'
+	//reload operator '<' to apply in multimap, 'CardCombo a < CardCombo b' means 'a.value > b.value'
 	bool operator < (const CardCombo& a) const {
-		return value < a.value;
+		return value > a.value;
 	}
 	/**
 	 * 检查个数最多的CardPack递减了几个, 如：887766 ==> findMaxSeq=3; 88877734 ==> findMaxSeq=2
@@ -839,8 +839,8 @@ multimap<CardCombo, vector<CardCombo> > map_best_combos;	//this map gives out th
  * 生成一个map_value
  */
 int best_combo_dp(CardCombo& mydeck){
-    int value = 0;
-	CardCombo best_single;		//for the enumerated c in the for-loop below, best_single saves the one with the biggest value
+    int value = -100;
+	CardCombo best_single;		//for the enumerated cur in the for-loop below, best_single saves the one with the biggest value
 	vector<CardCombo> best;		//best CardCombo decomposition under current mydeck
     if(map_value.find(mydeck)->second != 0){
         value = map_value.find(mydeck)->second;
@@ -848,7 +848,7 @@ int best_combo_dp(CardCombo& mydeck){
 		map_value.insert(make_pair(mydeck, value));
         return value;
     }
-    if(mydeck.cards.size() == 1){
+    if(mydeck.comboType != CardComboType::INVALID){	//the function getValue() promises it to be the biggest
         value = mydeck.getValue();
 		mydeck.value = value;
 		map_value.insert(make_pair(mydeck, value));
@@ -859,20 +859,22 @@ int best_combo_dp(CardCombo& mydeck){
     findAllCombos(mydeck, combos_in_mydeck);	//now it comes to the problem of finding all combos to form combos_in_mydeck
     
 	for(int i = 0; i <= 17; ++i){
-		for(CardCombo c : combos_in_mydeck[dp_order[i]]){    	//the key is how to accomplish the "c : mydeck" foreach process. 
+		for(CardCombo cur : combos_in_mydeck[dp_order[i]]){    	//the key is how to accomplish the "c : mydeck" foreach process. 
 													//----change into c : combos_in_mydeck
-			CardCombo minus_deck = mydeck - c;
-			int c_value = c.getValue();
-			int temp_value = best_combo_dp(minus_deck);
-			if(value < c.getValue() + temp_value){
-				value = c_value + temp_value;       //find the largest value of all decompositions
+			CardCombo minus_deck = mydeck - cur;
+			int cur_value = cur.getValue();
+			int temp_value = best_combo_dp(minus_deck);		//recursion
+			cur.value = cur_value;		//--------------don't know if ok, but this is key
+			if(value < cur.getValue() + temp_value){
+				value = cur_value + temp_value;       //find the largest value of all decompositions
 				best = map_best_combos.find(minus_deck)->second;
-				best_single = c;
+				best_single = cur;
 			}
 		}
 	}
 	best.push_back(best_single);
     mydeck.value = value;
+	sort(best.begin(), best.end());
 	map_value.insert(make_pair(mydeck, value));
 	map_best_combos.insert(make_pair(mydeck, best));
     return value;
@@ -885,7 +887,7 @@ template<typename CARD_ITERATOR>
 CardCombo CardCombo::myGivenCombo(CARD_ITERATOR begin, CARD_ITERATOR end) const {
 	CardCombo thisdeck(begin, end);
 	best_combo_dp(thisdeck);
-	return map_best_combos.find(thisdeck)->second.at(0);
+	return map_best_combos.find(thisdeck)->second.at(0);	//included PASS
 }
 
 /**
@@ -1148,15 +1150,11 @@ namespace BotzoneIO
 int main()
 {
 	BotzoneIO::input();
-
-	// 做出决策（你只需修改以下部分）
-
 	// findFirstValid 函数可以用作修改的起点
 	CardCombo myAction = lastValidCombo.findFirstValid(myCards.begin(), myCards.end());
 
 	// 是合法牌
 	assert(myAction.comboType != CardComboType::INVALID);
-
 	assert(
 		// 在上家没过牌的时候过牌
 		(lastValidCombo.comboType != CardComboType::PASS && myAction.comboType == CardComboType::PASS) ||
@@ -1165,8 +1163,5 @@ int main()
 		// 在上家过牌的时候出合法牌
 		(lastValidCombo.comboType == CardComboType::PASS && myAction.comboType != CardComboType::INVALID)
 	);
-
-	// 决策结束，输出结果（你只需修改以上部分）
-
 	BotzoneIO::output(myAction.cards.begin(), myAction.cards.end());
 }
