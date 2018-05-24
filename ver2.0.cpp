@@ -148,17 +148,17 @@ struct CardCombo
 	//reload operator '-' to apply in dp, 'CardCombo a - CardCombo b' means the CardCombo remained when cards in b are removed from cards in a
 	CardCombo operator - (const CardCombo& a) const{
 		vector<Card> tmp_cards(cards);
-		for(vector<Card>::iterator i = tmp_cards.begin(); i < tmp_cards.end(); ++i){
-			for(Card j : a.cards){				//在a.cards中查找牌i
-				if(*i == j)
+		vector<Card>::iterator i;  vector<Card>::const_iterator j;
+		for(i = tmp_cards.begin(); i < tmp_cards.end(); ++i){
+			for(j = a.cards.begin(); j != a.cards.end(); ++j){				//在a.cards中查找牌i
+				if(*i == *j)
 					break;
 			}									
-			if(i != tmp_cards.end()){			//如果找到了牌i
-				i = tmp_cards.erase(i);		//就在tmp_cards中删掉牌i，然后让迭代器i指向删除前的下一个元素
+			if(j != a.cards.end()){			//如果找到了牌i
+				i = tmp_cards.erase(i) - 1;		//就在tmp_cards中删掉牌i，然后让迭代器i指向删除前的下一个元素的前一个元素
 			}
 		}
-		CardCombo temp(tmp_cards.begin(), tmp_cards.end());
-		return temp;
+		return CardCombo(tmp_cards.begin(), tmp_cards.end());
 	}
 
 	//reload operator '<' to apply in multimap, 'CardCombo a < CardCombo b' means 'a.value < b.value'
@@ -441,9 +441,69 @@ struct CardCombo
 //-------------------------------------------------------
 /**
  * 计算该牌型的权值
+ * 在公式中还可以考虑加入系数并通过gradient descend反馈修正
  */
 int CardCombo::getValue() const {
-	return 0;
+	switch(comboType){
+	case CardComboType::PASS: return 0;
+	case CardComboType::SINGLE: return comboLevel - 7;
+	case CardComboType::PAIR: return comboLevel - 7;
+	case CardComboType::STRAIGHT: {
+			int temp = 0;
+			for(vector<Card>::const_iterator i = cards.begin(); i < cards.end(); ++i)
+				temp += card2level(*i);
+			return temp;
+		}
+	case CardComboType::STRAIGHT2: {
+			int temp = 0;
+			for(vector<CardPack>::const_iterator i = packs.begin(); i < packs.end(); ++i){
+				temp += i->level * 4;
+			}
+			return temp;
+		}
+	case CardComboType::TRIPLET: return 3 * (comboLevel + 1);
+	case CardComboType::TRIPLET1: return 3 * (comboLevel + 1) + packs[1].level;
+	case CardComboType::TRIPLET2: return 3 * (comboLevel + 1) + packs[1].level * packs[1].count;
+	case CardComboType::BOMB: return 4 * (comboLevel + 1);
+	case CardComboType::QUADRUPLE2: return 4 * (comboLevel + 1) + packs[1].level + packs[2].level;
+	case CardComboType::QUADRUPLE4: return 4 * (comboLevel + 1) + 2 * packs[0].level + 2 * packs[2].level;
+	case CardComboType::PLANE: return 3 * (comboLevel + 1) + 3 * (packs[1].level);
+	case CardComboType::PLANE1: //the same as PLANE2
+	case CardComboType::PLANE2: {
+			int temp = 0;
+			temp += 3 * (comboLevel + 1) + 3 * (packs[1].level + 1);
+			for(int i = 0; i < 2; ++i){
+				temp += packs[i + 2].level * packs[i + 2].count;
+			}
+			return temp;
+		}
+	case CardComboType::SSHUTTLE: {
+			int temp = 0;
+			for(vector<CardPack>::const_iterator i = packs.begin(); i != packs.end(); ++i){
+				temp += (i->level + 1) * i->count;
+			}
+			return temp;
+		}
+	case CardComboType::SSHUTTLE2: {
+			int temp = 0;
+			temp += (packs[0].level + 1 + packs[1].level + 1) * 4;
+			for(vector<CardPack>::const_iterator i = packs.begin() + 2; i != packs.end(); ++i){
+				temp += i->level * i->count;
+			}
+			return temp;
+		}
+	case CardComboType::SSHUTTLE4: {
+			int temp = 0;
+			temp += (packs[0].level + packs[1].level + 2) * 4;
+			for(vector<CardPack>::const_iterator i = packs.begin() + 2; i != packs.end(); ++i){
+				temp += i->level * i->count;
+			}
+			return temp;
+		}
+	case CardComboType::ROCKET: return 100;
+	case CardComboType::INVALID: return -100;
+	default: return -100;
+ 	}
 }
 
 // SearchCard()的具体实现 
@@ -778,7 +838,7 @@ multimap<CardCombo, vector<CardCombo> > map_best_combos;	//this map gives out th
  * 返回值：最大权值
  * 生成一个map_value
  */
-int best_combo_dp(CardCombo mydeck){
+int best_combo_dp(CardCombo& mydeck){
     int value = 0;
 	CardCombo best_single;		//for the enumerated c in the for-loop below, best_single saves the one with the biggest value
 	vector<CardCombo> best;		//best CardCombo decomposition under current mydeck
@@ -794,11 +854,12 @@ int best_combo_dp(CardCombo mydeck){
 		map_value.insert(make_pair(mydeck, value));
         return value;
     }
+	int dp_order[18] = { 11, 12, 13, 4, 3, 5, 6, 7, 14, 15, 16, 8, 17, 9, 10, 2, 1, 0 };	//search order
     vector<CardCombo> combos_in_mydeck[20];		//all combos finded in this deck
     findAllCombos(mydeck, combos_in_mydeck);	//now it comes to the problem of finding all combos to form combos_in_mydeck
     
-	for(int i = 0; i < 17; ++i){
-		for(CardCombo c : combos_in_mydeck[i]){    	//the key is how to accomplish the "c : mydeck" foreach process. 
+	for(int i = 0; i <= 17; ++i){
+		for(CardCombo c : combos_in_mydeck[dp_order[i]]){    	//the key is how to accomplish the "c : mydeck" foreach process. 
 													//----change into c : combos_in_mydeck
 			CardCombo minus_deck = mydeck - c;
 			int c_value = c.getValue();
@@ -822,8 +883,9 @@ int best_combo_dp(CardCombo mydeck){
  */
 template<typename CARD_ITERATOR>
 CardCombo CardCombo::myGivenCombo(CARD_ITERATOR begin, CARD_ITERATOR end) const {
-	best_combo_dp(*this);
-	return map_best_combos.find(*this)->second.at(0);
+	CardCombo thisdeck(begin, end);
+	best_combo_dp(thisdeck);
+	return map_best_combos.find(thisdeck)->second.at(0);
 }
 
 /**
@@ -839,7 +901,7 @@ CardCombo CardCombo::findFirstValid(CARD_ITERATOR begin, CARD_ITERATOR end) cons
 {   
 	if (comboType == CardComboType::PASS) // 如果不需要大过谁，只需要随便出
 	{                                     // 当前第一个出牌 
-		return myGivenCombo(begin, end);	// 按照估值函数得出的最优出牌
+		return myGivenCombo(myCards.begin(), myCards.end());	// 按照估值函数得出的最优出牌
 	}    
 
 	// 然后先看一下是不是火箭，是的话就过(因为打不过...) 
