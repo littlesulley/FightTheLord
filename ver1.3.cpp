@@ -439,7 +439,7 @@ struct CardCombo
 		// 下面枚举对子
 		currentType = (int)CardComboType::PAIR;
 		for (int i = 0; i <13; i++) // 最多到一对2
-			if (counts[i] >= 2)
+			if (counts[i] == 2)
 			{
 				vector<Card> tmp;
 				int l = beginOfCounts[i];  // 等级i的牌在deck中的起始位置l
@@ -736,10 +736,10 @@ struct CardCombo
 		short counts[MAX_LEVEL + 1] = {};
 		for (Card c : deck)
 			counts[card2level(c)]++;
-		short need[19] = { 0,4,10,8,6,4,5,3,5,1,2,4,6,6,2,8,10,12 }; // 每种牌型需要的牌数
+		short need[19] = { 0,1,2,0,0,3,4,5,4,6,8,3,4,5,4,6,8,2 }; ; // 每种牌型需要的牌数
 
 																  // 出牌次序
-		int order[19] = { 0,4,13,12,11,6,75,3,1,2,8,10,9,17,14,15,16 };
+		int order[19] = { 0,4,13,12,11,6,7,5,3,1,2,8,10,9,17,14,15,16 };
 
 		// 双方都按照这个次序出牌
 		for (int i = 1; i < 19; i++)
