@@ -22,7 +22,7 @@ int lastPlayer;
 set<Card> myCards;
 set<Card> landlordPublicCards;
 vector<vector<Card>> whatTheyPlayed[PLAYER_COUNT];
-vector<CardCombo> allCombos[20]; // µ±Ç°ÊÖÅÆµÄËùÓĞ¿ÉÄÜ×éºÏ 
+vector<CardCombo> allCombos[20]; // å½“å‰æ‰‹ç‰Œçš„æ‰€æœ‰å¯èƒ½ç»„åˆ 
 const int level2value[15]={-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7};
 
 void SearchCard(vector<CardCombo>&,int&, int, short, short, int&, vector<short>&, vector<short>&, short*, short*, set<short>&);
@@ -31,47 +31,47 @@ void findSeq(vector<Card>&,vector<CardCombo>&);
 
 enum class CardComboType
 {
-	PASS, // ¹ı
-	SINGLE, // µ¥ÕÅ      1
-	PAIR, // ¶Ô×Ó        2
-	STRAIGHT, // Ë³×Ó    3
-	STRAIGHT2, // Ë«Ë³   4
-	TRIPLET, // ÈıÌõ     5
-	TRIPLET1, // Èı´øÒ»  6
-	TRIPLET2, // Èı´ø¶ş  7
-	BOMB, // Õ¨µ¯        8
-	QUADRUPLE2, // ËÄ´ø¶ş£¨Ö»£©   9
-	QUADRUPLE4, // ËÄ´ø¶ş£¨¶Ô£©   10
-	PLANE, // ·É»ú                11
-	PLANE1, // ·É»ú´øĞ¡Òí         12
-	PLANE2, // ·É»ú´ø´óÒí         13
-	SSHUTTLE, // º½Ìì·É»ú         14
-	SSHUTTLE2, // º½Ìì·É»ú´øĞ¡Òí  15
-	SSHUTTLE4, // º½Ìì·É»ú´ø´óÒí  16
-	ROCKET, // »ğ¼ı               17
-	INVALID // ·Ç·¨ÅÆĞÍ
-};
+	PASS, // è¿‡
+	SINGLE, // å•å¼       1
+	PAIR, // å¯¹å­        2
+	STRAIGHT, // é¡ºå­    3
+	STRAIGHT2, // åŒé¡º   4
+	TRIPLET, // ä¸‰æ¡     5
+	TRIPLET1, // ä¸‰å¸¦ä¸€  6
+	TRIPLET2, // ä¸‰å¸¦äºŒ  7
+	BOMB, // ç‚¸å¼¹        8
+	QUADRUPLE2, // å››å¸¦äºŒï¼ˆåªï¼‰   9
+	QUADRUPLE4, // å››å¸¦äºŒï¼ˆå¯¹ï¼‰   10
+	PLANE, // é£æœº                11
+	PLANE1, // é£æœºå¸¦å°ç¿¼         12
+	PLANE2, // é£æœºå¸¦å¤§ç¿¼         13
+	SSHUTTLE, // èˆªå¤©é£æœº         14
+	SSHUTTLE2, // èˆªå¤©é£æœºå¸¦å°ç¿¼  15
+	SSHUTTLE4, // èˆªå¤©é£æœºå¸¦å¤§ç¿¼  16
+	ROCKET, // ç«ç®­               17
+	INVALID // éæ³•ç‰Œå‹
+}; //0,3,4,13,12,11,6,7,5,1,2,8,10,9,17,14,15,16 
 
 int cardComboScores[] = {
-	0, // ¹ı    
-	1, // µ¥ÕÅ   
-	2, // ¶Ô×Ó
-	6, // Ë³×Ó
-	6, // Ë«Ë³
-	4, // ÈıÌõ
-	4, // Èı´øÒ»
-	4, // Èı´ø¶ş
-	10, // Õ¨µ¯
-	8, // ËÄ´ø¶ş£¨Ö»£©
-	8, // ËÄ´ø¶ş£¨¶Ô£©
-	8, // ·É»ú
-	8, // ·É»ú´øĞ¡Òí
-	8, // ·É»ú´ø´óÒí
-	10, // º½Ìì·É»ú£¨ĞèÒªÌØÅĞ£º¶şÁ¬Îª10·Ö£¬¶àÁ¬Îª20·Ö£©
-	10, // º½Ìì·É»ú´øĞ¡Òí
-	10, // º½Ìì·É»ú´ø´óÒí
-	16, // »ğ¼ı
-	0 // ·Ç·¨ÅÆĞÍ
+	0, // è¿‡    
+	1, // å•å¼    
+	2, // å¯¹å­
+	6, // é¡ºå­
+	6, // åŒé¡º
+	4, // ä¸‰æ¡
+	4, // ä¸‰å¸¦ä¸€
+	4, // ä¸‰å¸¦äºŒ
+	10, // ç‚¸å¼¹
+	8, // å››å¸¦äºŒï¼ˆåªï¼‰
+	8, // å››å¸¦äºŒï¼ˆå¯¹ï¼‰
+	8, // é£æœº
+	8, // é£æœºå¸¦å°ç¿¼
+	8, // é£æœºå¸¦å¤§ç¿¼
+	10, // èˆªå¤©é£æœºï¼ˆéœ€è¦ç‰¹åˆ¤ï¼šäºŒè¿ä¸º10åˆ†ï¼Œå¤šè¿ä¸º20åˆ†ï¼‰
+	10, // èˆªå¤©é£æœºå¸¦å°ç¿¼
+	10, // èˆªå¤©é£æœºå¸¦å¤§ç¿¼
+	16, // ç«ç®­
+	0 // éæ³•ç‰Œå‹
 };
 
 #ifndef _BOTZONE_ONLINE
@@ -98,14 +98,14 @@ string cardComboStrings[] = {
 };
 #endif
 
-// ÓÃ0~53Õâ54¸öÕûÊı±íÊ¾Î¨Ò»µÄÒ»ÕÅÅÆ
+// ç”¨0~53è¿™54ä¸ªæ•´æ•°è¡¨ç¤ºå”¯ä¸€çš„ä¸€å¼ ç‰Œ
 constexpr Card card_joker = 52;
 constexpr Card card_JOKER = 53;
 
-// ³ıÁËÓÃ0~53Õâ54¸öÕûÊı±íÊ¾Î¨Ò»µÄÅÆ£¬
-// ÕâÀï»¹ÓÃÁíÒ»ÖÖĞòºÅ±íÊ¾ÅÆµÄ´óĞ¡£¨²»¹Ü»¨É«£©£¬ÒÔ±ã±È½Ï£¬³Æ×÷µÈ¼¶£¨Level£©
-// ¶ÔÓ¦¹ØÏµÈçÏÂ£º
-// 3 4 5 6 7 8 9 10	J Q K	A	2	Ğ¡Íõ	´óÍõ
+// é™¤äº†ç”¨0~53è¿™54ä¸ªæ•´æ•°è¡¨ç¤ºå”¯ä¸€çš„ç‰Œï¼Œ
+// è¿™é‡Œè¿˜ç”¨å¦ä¸€ç§åºå·è¡¨ç¤ºç‰Œçš„å¤§å°ï¼ˆä¸ç®¡èŠ±è‰²ï¼‰ï¼Œä»¥ä¾¿æ¯”è¾ƒï¼Œç§°ä½œç­‰çº§ï¼ˆLevelï¼‰
+// å¯¹åº”å…³ç³»å¦‚ä¸‹ï¼š
+// 3 4 5 6 7 8 9 10	J Q K	A	2	å°ç‹	å¤§ç‹
 // 0 1 2 3 4 5 6 7	8 9 10	11	12	13	    14
 using Level = short;
 constexpr Level MAX_LEVEL = 15;
@@ -114,18 +114,18 @@ constexpr Level level_joker = 13;
 constexpr Level level_JOKER = 14;
 
 /**
-* ½«Card±ä³ÉLevel
+* å°†Cardå˜æˆLevel
 */
 constexpr Level card2level(Card card)
 {
 	return card / 4 + card / 53;
 }
 
-// ÅÆµÄ×éºÏ£¬ÓÃÓÚ¼ÆËãÅÆĞÍ
+// ç‰Œçš„ç»„åˆï¼Œç”¨äºè®¡ç®—ç‰Œå‹
 struct CardCombo
 {
-	// ±íÊ¾Í¬µÈ¼¶µÄÅÆÓĞ¶àÉÙÕÅ
-	// »á°´¸öÊı´Ó´óµ½Ğ¡¡¢µÈ¼¶´Ó´óµ½Ğ¡ÅÅĞò
+	// è¡¨ç¤ºåŒç­‰çº§çš„ç‰Œæœ‰å¤šå°‘å¼ 
+	// ä¼šæŒ‰ä¸ªæ•°ä»å¤§åˆ°å°ã€ç­‰çº§ä»å¤§åˆ°å°æ’åº
 	struct CardPack
 	{
 		Level level;
@@ -134,14 +134,14 @@ struct CardCombo
 		bool operator< (const CardPack& b) const
 		{
 			if (count == b.count)
-				return level > b.level;   //ÕÅÊıÏàÍ¬ÔòµÈ¼¶´óµÄÅÅÇ°Ãæ 
-			return count > b.count;       //·ñÔò°´ÕÅÊıÅÅĞò
+				return level > b.level;   //å¼ æ•°ç›¸åŒåˆ™ç­‰çº§å¤§çš„æ’å‰é¢ 
+			return count > b.count;       //å¦åˆ™æŒ‰å¼ æ•°æ’åº
 		}
 	};
-	vector<Card> cards; // Ô­Ê¼µÄÅÆ£¬Î´ÅÅĞò
-	vector<CardPack> packs; // °´ÊıÄ¿ºÍ´óĞ¡ÅÅĞòµÄÅÆÖÖ
-	CardComboType comboType; // Ëã³öµÄÅÆĞÍ
-	Level comboLevel = 0; // Ëã³öµÄ´óĞ¡Ğò
+	vector<Card> cards; // åŸå§‹çš„ç‰Œï¼Œæœªæ’åº
+	vector<CardPack> packs; // æŒ‰æ•°ç›®å’Œå¤§å°æ’åºçš„ç‰Œç§
+	CardComboType comboType; // ç®—å‡ºçš„ç‰Œå‹
+	Level comboLevel = 0; // ç®—å‡ºçš„å¤§å°åº
 
 	bool operator<(const CardCombo& c) const
 	{
@@ -162,7 +162,7 @@ struct CardCombo
 		return tmp;
 	}
 	/**
-	* ¼ì²é¸öÊı×î¶àµÄCardPackµİ¼õÁË¼¸¸ö, Èç£º887766 ==> findMaxSeq=3; 88877734 ==> findMaxSeq=2
+	* æ£€æŸ¥ä¸ªæ•°æœ€å¤šçš„CardPacké€’å‡äº†å‡ ä¸ª, å¦‚ï¼š887766 ==> findMaxSeq=3; 88877734 ==> findMaxSeq=2
 	*/
 	int findMaxSeq() const
 	{
@@ -174,44 +174,44 @@ struct CardCombo
 	}
 
 	/**
-	* Õâ¸öÅÆĞÍ×îºóËã×Ü·ÖµÄÊ±ºòµÄÈ¨ÖØ
+	* è¿™ä¸ªç‰Œå‹æœ€åç®—æ€»åˆ†çš„æ—¶å€™çš„æƒé‡
 	*/
 	int getWeight() const
 	{
-		// º½Ìì·É»úĞèÒªµ¥¶ÀÅĞ¶Ï 
+		// èˆªå¤©é£æœºéœ€è¦å•ç‹¬åˆ¤æ–­ 
 		if (comboType == CardComboType::SSHUTTLE ||
 			comboType == CardComboType::SSHUTTLE2 ||
 			comboType == CardComboType::SSHUTTLE4)
 			return cardComboScores[(int)comboType] + (findMaxSeq() > 2) * 10;
-		// ÆäËûÅÆĞÍÖ±½ÓµÃµ½È¨Öµ 
+		// å…¶ä»–ç‰Œå‹ç›´æ¥å¾—åˆ°æƒå€¼ 
 		return cardComboScores[(int)comboType];
 	}
 
-	// ´´½¨Ò»¸ö¿ÕÅÆ×é
+	// åˆ›å»ºä¸€ä¸ªç©ºç‰Œç»„
 	CardCombo() : comboType(CardComboType::PASS) {}
 
 	/**
-	* Í¨¹ıCard£¨¼´short£©ÀàĞÍµÄµü´úÆ÷´´½¨Ò»¸öÅÆĞÍ
-	* ²¢¼ÆËã³öÅÆĞÍºÍ´óĞ¡ĞòµÈ
-	* ¼ÙÉèÊäÈëÃ»ÓĞÖØ¸´Êı×Ö£¨¼´ÖØ¸´µÄCard£©
+	* é€šè¿‡Cardï¼ˆå³shortï¼‰ç±»å‹çš„è¿­ä»£å™¨åˆ›å»ºä¸€ä¸ªç‰Œå‹
+	* å¹¶è®¡ç®—å‡ºç‰Œå‹å’Œå¤§å°åºç­‰
+	* å‡è®¾è¾“å…¥æ²¡æœ‰é‡å¤æ•°å­—ï¼ˆå³é‡å¤çš„Cardï¼‰
 	*/
 
-	// Ä£°å¹¹Ôìº¯Êı£¬Í¨¹ıCARDµü´úÆ÷¼ÆËã³öµ±Ç°ÅÆĞÍ 
+	// æ¨¡æ¿æ„é€ å‡½æ•°ï¼Œé€šè¿‡CARDè¿­ä»£å™¨è®¡ç®—å‡ºå½“å‰ç‰Œå‹ 
 	template <typename CARD_ITERATOR>
 	CardCombo(CARD_ITERATOR begin, CARD_ITERATOR end)
 	{
-		// ÌØÅĞ£º¿Õ
-		if (begin == end) //Èç¹ûÃ»ÓĞÅÆ³öÁË¾ÍPASS 
+		// ç‰¹åˆ¤ï¼šç©º
+		if (begin == end) //å¦‚æœæ²¡æœ‰ç‰Œå‡ºäº†å°±PASS 
 		{
 			comboType = CardComboType::PASS;
 			return;
 		}
 
-		// Ã¿ÖÖÅÆÓĞ¶àÉÙ¸ö£ºcounts[i]±íÊ¾µÚi¸öµÈ¼¶ÅÆµÄÊıÁ¿ 
+		// æ¯ç§ç‰Œæœ‰å¤šå°‘ä¸ªï¼šcounts[i]è¡¨ç¤ºç¬¬iä¸ªç­‰çº§ç‰Œçš„æ•°é‡ 
 		short counts[MAX_LEVEL + 1] = {};
 
-		// Í¬ÖÖÅÆµÄÕÅÊı£¨ÓĞ¶àÉÙ¸öµ¥ÕÅ¡¢¶Ô×Ó¡¢ÈıÌõ¡¢ËÄÌõ£¬ÕâĞ©ÊÇComboµÄ»ù±¾ÔªËØ£©
-		// countsOfCount[i]±íÊ¾µÚiÖÖ(µ¥ÕÅ¡¢¶Ô×Ó...)ÅÆµÄÊıÁ¿ 
+		// åŒç§ç‰Œçš„å¼ æ•°ï¼ˆæœ‰å¤šå°‘ä¸ªå•å¼ ã€å¯¹å­ã€ä¸‰æ¡ã€å››æ¡ï¼Œè¿™äº›æ˜¯Comboçš„åŸºæœ¬å…ƒç´ ï¼‰
+		// countsOfCount[i]è¡¨ç¤ºç¬¬iç§(å•å¼ ã€å¯¹å­...)ç‰Œçš„æ•°é‡ 
 		short countOfCount[5] = {};
 
 		cards = vector<Card>(begin, end);
@@ -225,11 +225,11 @@ struct CardCombo
 			}
 		sort(packs.begin(), packs.end());
 
-		// ÓÃ×î¶à¡¢µÈ¼¶×î´óµÄÄÇÖÖÅÆ×ÜÊÇ¿ÉÒÔ±È½Ï´óĞ¡µÄ
+		// ç”¨æœ€å¤šã€ç­‰çº§æœ€å¤§çš„é‚£ç§ç‰Œæ€»æ˜¯å¯ä»¥æ¯”è¾ƒå¤§å°çš„
 		comboLevel = packs[0].level;
 
-		// ¼ÆËãÅÆĞÍ
-		// °´ÕÕ Í¬ÖÖÅÆµÄÕÅÊı ÓĞ¼¸ÖÖ ½øĞĞ·ÖÀà
+		// è®¡ç®—ç‰Œå‹
+		// æŒ‰ç…§ åŒç§ç‰Œçš„å¼ æ•° æœ‰å‡ ç§ è¿›è¡Œåˆ†ç±»
 		vector<int> kindOfCountOfCount;
 		for (int i = 0; i <= 4; i++)
 			if (countOfCount[i])
@@ -240,61 +240,61 @@ struct CardCombo
 
 		switch (kindOfCountOfCount.size())
 		{
-		case 1: // Ö»ÓĞÒ»ÀàÅÆ(¶¼ÊÇµ¥ÕÅ/¶Ô×Ó/ÈıÌõ/ËÄÌõ) 
-			curr = countOfCount[kindOfCountOfCount[0]]; //¸ÃÀàÅÆµÄÊıÁ¿(µ¥ÕÅ¡¢¶Ô×Ó...) 
+		case 1: // åªæœ‰ä¸€ç±»ç‰Œ(éƒ½æ˜¯å•å¼ /å¯¹å­/ä¸‰æ¡/å››æ¡) 
+			curr = countOfCount[kindOfCountOfCount[0]]; //è¯¥ç±»ç‰Œçš„æ•°é‡(å•å¼ ã€å¯¹å­...) 
 			switch (kindOfCountOfCount[0])
 			{
-			case 1: //¸ÃÀàÅÆÎª µ¥ÕÅ 
-				if (curr == 1)  //Ö»ÓĞÒ»ÕÅ£¬¼´µ±Ç°ÅÆĞÍÎª _µ¥ÕÅ_ 
+			case 1: //è¯¥ç±»ç‰Œä¸º å•å¼  
+				if (curr == 1)  //åªæœ‰ä¸€å¼ ï¼Œå³å½“å‰ç‰Œå‹ä¸º _å•å¼ _ 
 				{
 					comboType = CardComboType::SINGLE;
 					return;
 				}
-				if (curr == 2 && packs[1].level == level_joker) //ÓĞÁ½ÕÅ£¬ÆäÖĞÒ»ÕÅÎªĞ¡Íõ£¬Ôò±ØÈ»Îª_»ğ¼ı_ 
+				if (curr == 2 && packs[1].level == level_joker) //æœ‰ä¸¤å¼ ï¼Œå…¶ä¸­ä¸€å¼ ä¸ºå°ç‹ï¼Œåˆ™å¿…ç„¶ä¸º_ç«ç®­_ 
 				{
 					comboType = CardComboType::ROCKET;
 					return;
 				}
-				if (curr >= 5 && findMaxSeq() == curr &&  //ÓĞ¶àÕÅ(>=5)£¬¼´ÊÇ_Ë³×Ó_ 
+				if (curr >= 5 && findMaxSeq() == curr &&  //æœ‰å¤šå¼ (>=5)ï¼Œå³æ˜¯_é¡ºå­_ 
 					packs.rbegin()->level <= MAX_STRAIGHT_LEVEL)
 				{
 					comboType = CardComboType::STRAIGHT;
 					return;
 				}
 				break;
-			case 2: //¸ÃÀàÅÆÎª ¶Ô×Ó 
-				if (curr == 1)  //³öµÄÊÇ _¶Ô×Ó_ 
+			case 2: //è¯¥ç±»ç‰Œä¸º å¯¹å­ 
+				if (curr == 1)  //å‡ºçš„æ˜¯ _å¯¹å­_ 
 				{
 					comboType = CardComboType::PAIR;
 					return;
 				}
-				if (curr >= 3 && findMaxSeq() == curr && //³öµÄÊÇ _Á¬¶Ô_ 
+				if (curr >= 3 && findMaxSeq() == curr && //å‡ºçš„æ˜¯ _è¿å¯¹_ 
 					packs.rbegin()->level <= MAX_STRAIGHT_LEVEL)
 				{
 					comboType = CardComboType::STRAIGHT2;
 					return;
 				}
 				break;
-			case 3: //¸ÃÀàÅÆÎªÈıÌõ 
+			case 3: //è¯¥ç±»ç‰Œä¸ºä¸‰æ¡ 
 				if (curr == 1)
 				{
-					comboType = CardComboType::TRIPLET;  //³öµÄÊÇ_Èı²»´ø_ 
+					comboType = CardComboType::TRIPLET;  //å‡ºçš„æ˜¯_ä¸‰ä¸å¸¦_ 
 					return;
 				}
 				if (findMaxSeq() == curr &&
-					packs.rbegin()->level <= MAX_STRAIGHT_LEVEL) //ÓÉÓÚÖ»ÓĞÒ»ÖÖÅÆ£¬¹ÊÊÇ_·É»ú²»´øÒí_ 
+					packs.rbegin()->level <= MAX_STRAIGHT_LEVEL) //ç”±äºåªæœ‰ä¸€ç§ç‰Œï¼Œæ•…æ˜¯_é£æœºä¸å¸¦ç¿¼_ 
 				{
 					comboType = CardComboType::PLANE;
 					return;
 				}
 				break;
-			case 4: // ¸ÃÀàÅÆÎªËÄÌõ 
-				if (curr == 1)  //Ö»ÓĞÒ»¸ö£¬ËµÃ÷³öµÄÊÇ_Õ¨µ¯_ 
+			case 4: // è¯¥ç±»ç‰Œä¸ºå››æ¡ 
+				if (curr == 1)  //åªæœ‰ä¸€ä¸ªï¼Œè¯´æ˜å‡ºçš„æ˜¯_ç‚¸å¼¹_ 
 				{
 					comboType = CardComboType::BOMB;
 					return;
 				}
-				if (findMaxSeq() == curr &&  //Ö»ÓĞÒ»ÖÖÅÆ£¬ÅÆĞÍÎª_º½Ìì·É»ú²»´øÒí_ 
+				if (findMaxSeq() == curr &&  //åªæœ‰ä¸€ç§ç‰Œï¼Œç‰Œå‹ä¸º_èˆªå¤©é£æœºä¸å¸¦ç¿¼_ 
 					packs.rbegin()->level <= MAX_STRAIGHT_LEVEL)
 				{
 					comboType = CardComboType::SSHUTTLE;
@@ -302,37 +302,37 @@ struct CardCombo
 				}
 			}
 			break;
-		case 2: // ÓĞÁ½ÀàÅÆ£¬´ËÊ±¾Í²»´æÔÚµ¥ÕÅ¡¢¶Ô×Ó¡¢Ë³×ÓÁË£¬Ö»ÄÜÊÇ Èı´ø?¡¢ËÄ´ø?µÄÇé¿ö 
-			curr = countOfCount[kindOfCountOfCount[1]];   //ÅÆÖÖ¸ü´ó(ÈıÌõORËÄÌõ)µÄÄÇÒ»ÀàÅÆµÄÊıÁ¿ 
-			lesser = countOfCount[kindOfCountOfCount[0]]; //ÅÆÖÖ¸üĞ¡(µ¥ÕÅOR¶Ô×Ó)µÄÄÇÒ»ÀàÅÆµÄÊıÁ¿ 
-			if (kindOfCountOfCount[1] == 3)  //¸ü´óµÄÄÇÒ»ÀàÅÆÎªÈıÌõ 
+		case 2: // æœ‰ä¸¤ç±»ç‰Œï¼Œæ­¤æ—¶å°±ä¸å­˜åœ¨å•å¼ ã€å¯¹å­ã€é¡ºå­äº†ï¼Œåªèƒ½æ˜¯ ä¸‰å¸¦?ã€å››å¸¦?çš„æƒ…å†µ 
+			curr = countOfCount[kindOfCountOfCount[1]];   //ç‰Œç§æ›´å¤§(ä¸‰æ¡ORå››æ¡)çš„é‚£ä¸€ç±»ç‰Œçš„æ•°é‡ 
+			lesser = countOfCount[kindOfCountOfCount[0]]; //ç‰Œç§æ›´å°(å•å¼ ORå¯¹å­)çš„é‚£ä¸€ç±»ç‰Œçš„æ•°é‡ 
+			if (kindOfCountOfCount[1] == 3)  //æ›´å¤§çš„é‚£ä¸€ç±»ç‰Œä¸ºä¸‰æ¡ 
 			{
-				// ¸üĞ¡µÄÄÇÒ»ÀàÅÆÎªµ¥ÕÅ£¬ËµÃ÷³öµÄÊÇ_Èı´ø1_ 
+				// æ›´å°çš„é‚£ä¸€ç±»ç‰Œä¸ºå•å¼ ï¼Œè¯´æ˜å‡ºçš„æ˜¯_ä¸‰å¸¦1_ 
 				if (kindOfCountOfCount[0] == 1)
 				{
-					// Èı´øÒ»
-					if (curr == 1 && lesser == 1) //ÊıÁ¿¶¼Ö»ÓĞ1£¬Ö±½ÓÈı´ø1 
+					// ä¸‰å¸¦ä¸€
+					if (curr == 1 && lesser == 1) //æ•°é‡éƒ½åªæœ‰1ï¼Œç›´æ¥ä¸‰å¸¦1 
 					{
 						comboType = CardComboType::TRIPLET1;
 						return;
 					}
-					if (findMaxSeq() == curr && lesser == curr &&  //ÊıÁ¿²»Ö¹Ò»£¬¾ÍÊÇ_·É»ú´øĞ¡Òí_ 
+					if (findMaxSeq() == curr && lesser == curr &&  //æ•°é‡ä¸æ­¢ä¸€ï¼Œå°±æ˜¯_é£æœºå¸¦å°ç¿¼_ 
 						packs.rbegin()->level <= MAX_STRAIGHT_LEVEL)
 					{
 						comboType = CardComboType::PLANE1;
 						return;
 					}
 				}
-				// ¸üĞ¡µÄÄÇÒ»ÀàÅÆÎª¶Ô×Ó£¬Èı´ø2 
+				// æ›´å°çš„é‚£ä¸€ç±»ç‰Œä¸ºå¯¹å­ï¼Œä¸‰å¸¦2 
 				if (kindOfCountOfCount[0] == 2)
 				{
-					// Èı´ø¶ş
-					if (curr == 1 && lesser == 1)  //³öµÄÅÆÎª_Èı´ø2_ 
+					// ä¸‰å¸¦äºŒ
+					if (curr == 1 && lesser == 1)  //å‡ºçš„ç‰Œä¸º_ä¸‰å¸¦2_ 
 					{
 						comboType = CardComboType::TRIPLET2;
 						return;
 					}
-					if (findMaxSeq() == curr && lesser == curr &&  // _·É»ú´ø´óÒí_ 
+					if (findMaxSeq() == curr && lesser == curr &&  // _é£æœºå¸¦å¤§ç¿¼_ 
 						packs.rbegin()->level <= MAX_STRAIGHT_LEVEL)
 					{
 						comboType = CardComboType::PLANE2;
@@ -340,35 +340,35 @@ struct CardCombo
 					}
 				}
 			}
-			// ¸ü´óµÄÄÇÒ»ÀàÅÆÎª ËÄÌõ 
+			// æ›´å¤§çš„é‚£ä¸€ç±»ç‰Œä¸º å››æ¡ 
 			if (kindOfCountOfCount[1] == 4)
 			{
-				// ¸üĞ¡µÄÄÇÒ»ÀàÅÆÎªµ¥ÕÅ£¬ËÄÌõ´ø£¿
+				// æ›´å°çš„é‚£ä¸€ç±»ç‰Œä¸ºå•å¼ ï¼Œå››æ¡å¸¦ï¼Ÿ
 				if (kindOfCountOfCount[0] == 1)
 				{
-					// ËÄÌõ´øÁ½Ö» * n
-					if (curr == 1 && lesser == 2)  //ÓĞÁ½¸öµ¥ÕÅ£¬ÅÆĞÍÎª_ËÄ´ø2_ 
+					// å››æ¡å¸¦ä¸¤åª * n
+					if (curr == 1 && lesser == 2)  //æœ‰ä¸¤ä¸ªå•å¼ ï¼Œç‰Œå‹ä¸º_å››å¸¦2_ 
 					{
 						comboType = CardComboType::QUADRUPLE2;
 						return;
 					}
-					if (findMaxSeq() == curr && lesser == curr * 2 &&  //Á¬ĞøµÄ·É»ú£¬ÔòÎª_º½Ìì·É»ú´øĞ¡Òí_ 
+					if (findMaxSeq() == curr && lesser == curr * 2 &&  //è¿ç»­çš„é£æœºï¼Œåˆ™ä¸º_èˆªå¤©é£æœºå¸¦å°ç¿¼_ 
 						packs.rbegin()->level <= MAX_STRAIGHT_LEVEL)
 					{
 						comboType = CardComboType::SSHUTTLE2;
 						return;
 					}
 				}
-				// ¸üĞ¡µÄÄÇÒ»ÀàÅÆÎª¶Ô×Ó 
+				// æ›´å°çš„é‚£ä¸€ç±»ç‰Œä¸ºå¯¹å­ 
 				if (kindOfCountOfCount[0] == 2)
 				{
-					// ËÄÌõ´øÁ½¶Ô * n
-					if (curr == 1 && lesser == 2)  // ÓĞÁ½¸ö¶Ô×Ó£¬_ËÄ´øÁ½¶Ô_ 
+					// å››æ¡å¸¦ä¸¤å¯¹ * n
+					if (curr == 1 && lesser == 2)  // æœ‰ä¸¤ä¸ªå¯¹å­ï¼Œ_å››å¸¦ä¸¤å¯¹_ 
 					{
 						comboType = CardComboType::QUADRUPLE4;
 						return;
 					}
-					if (findMaxSeq() == curr && lesser == curr * 2 && //Á¬Ğø³öÏÖ£¬ÔòÎª_º½Ìì·É»ú´ø´óÒí_ 
+					if (findMaxSeq() == curr && lesser == curr * 2 && //è¿ç»­å‡ºç°ï¼Œåˆ™ä¸º_èˆªå¤©é£æœºå¸¦å¤§ç¿¼_ 
 						packs.rbegin()->level <= MAX_STRAIGHT_LEVEL)
 					{
 						comboType = CardComboType::SSHUTTLE4;
@@ -378,19 +378,19 @@ struct CardCombo
 			}
 		}
 
-		comboType = CardComboType::INVALID; //·ñÔòÅÆÎŞĞ§ 
+		comboType = CardComboType::INVALID; //å¦åˆ™ç‰Œæ— æ•ˆ 
 	}
 
 	/**
-	* ÅĞ¶ÏÖ¸¶¨ÅÆ×éÄÜ·ñ´ó¹ıµ±Ç°ÅÆ×é£¨Õâ¸öº¯Êı²»¿¼ÂÇ¹ıÅÆµÄÇé¿ö£¡£©
+	* åˆ¤æ–­æŒ‡å®šç‰Œç»„èƒ½å¦å¤§è¿‡å½“å‰ç‰Œç»„ï¼ˆè¿™ä¸ªå‡½æ•°ä¸è€ƒè™‘è¿‡ç‰Œçš„æƒ…å†µï¼ï¼‰
 	*/
 	bool canBeBeatenBy(const CardCombo& b) const
 	{
 		if (comboType == CardComboType::INVALID || b.comboType == CardComboType::INVALID)
 			return false;
-		if (b.comboType == CardComboType::ROCKET)  //Ë«ÍõÄÜ´ó¹ıÈÎºÎÅÆ 
+		if (b.comboType == CardComboType::ROCKET)  //åŒç‹èƒ½å¤§è¿‡ä»»ä½•ç‰Œ 
 			return true;
-		if (b.comboType == CardComboType::BOMB)    //Õ¨µ¯¾Í±È´óĞ¡ 
+		if (b.comboType == CardComboType::BOMB)    //ç‚¸å¼¹å°±æ¯”å¤§å° 
 			switch (comboType)
 			{
 			case CardComboType::ROCKET:
@@ -400,24 +400,32 @@ struct CardCombo
 			default:
 				return true;
 			}
-		// ÆäËûÇé¿öÒª±È½Ï´óĞ¡±ØĞë£º(1).ÅÆĞÍÏàÍ¬£»(2).ÅÆÊıÁ¿ÏàÍ¬ 
+		// å…¶ä»–æƒ…å†µè¦æ¯”è¾ƒå¤§å°å¿…é¡»ï¼š(1).ç‰Œå‹ç›¸åŒï¼›(2).ç‰Œæ•°é‡ç›¸åŒ 
 		return b.comboType == comboType && b.cards.size() == cards.size() && b.comboLevel > comboLevel;
 	}
 	/**
-	* ´Ë´¦Îª³öÅÆ²ßÂÔ
+	* æ­¤å¤„ä¸ºå‡ºç‰Œç­–ç•¥
 	*/
 	template <typename CARD_ITERATOR>
 	CardCombo myGivenCombo(CARD_ITERATOR begin, CARD_ITERATOR end) const
 	{
 		auto deck=vector<Card>(begin,end);
 		vector<CardCombo> allCombos[20];
-		// Ê×ÏÈÕÒµ½ËùÓĞ¿ÉÄÜµÄ×éºÏ
+		// é¦–å…ˆæ‰¾åˆ°æ‰€æœ‰å¯èƒ½çš„ç»„åˆ
 		findAllCombos(deck, allCombos);
+		for (int i = 1; i < 18; i++)
+			sort(allCombos[i].begin(), allCombos[i].end());
 
-		// ÏÈ¿¼ÂÇÒ»ÖÖÌØÊâÇé¿ö£º¶Ô·½(¼´ºÍ×Ô¼º¶ÔÁ¢µÄÒ»·½)Ö»ÓĞÒ»ÕÅÅÆÁË£¬
-		// ÎÒ¾ÍÖ»ÄÜ³öÅÆÊı>=2µÄÅÆ£»ÈôÖ»ÓĞµ¥ÕÅ£¬ÔòÖ»ÄÜ´Ó´ó´òµ½Ğ¡
-		if ((myPosition != 0 && cardRemaining[0] == 1) ||
-			(myPosition == 0 && (cardRemaining[1] == 1 || cardRemaining[2] == 1)))
+		short counts[MAX_LEVEL + 1] = {};
+		for (Card c : deck)
+			counts[card2level(c)]++;
+		short need[19] = { 0,1,2,5,6,3,4,5,4,6,8,6,8,10,8,12,16,2 }; // æ¯ç§ç‰Œå‹éœ€è¦çš„ç‰Œæ•°
+		int order[19] = { 0,3,4,13,12,11,6,7,5,1,2,8,10,9,17,14,15,16 };
+		
+		// å…ˆè€ƒè™‘ä¸€ç§ç‰¹æ®Šæƒ…å†µï¼šå¯¹æ–¹(å³å’Œè‡ªå·±å¯¹ç«‹çš„ä¸€æ–¹)åªæœ‰ä¸€/äºŒå¼ ç‰Œäº†ï¼Œ
+		// æˆ‘å°±åªèƒ½å‡ºç‰Œæ•°>=2çš„ç‰Œï¼›è‹¥åªæœ‰å•å¼ ï¼Œåˆ™åªèƒ½ä»å¤§æ‰“åˆ°å°
+		if ((myPosition != 0 && cardRemaining[0] <= 2) ||
+			(myPosition == 0 && (cardRemaining[1] <= 2 || cardRemaining[2] <= 2)))
 		{
 			if (allCombos[2].size())
 				return allCombos[2][0];
@@ -428,17 +436,7 @@ struct CardCombo
 					return allCombos[1][Size - 1];
 			}
 		}
-		// ÏÂÃæ¿¼ÂÇÆäËûÇé¿ö£¬ÏÈ°ÑÅÆÅÅĞò
-		for (int i = 1; i < 18; i++)
-			sort(allCombos[i].begin(), allCombos[i].end());
-
-		short counts[MAX_LEVEL + 1] = {};
-		for (Card c : deck)
-			counts[card2level(c)]++;
-		short need[19] = { 0,1,2,5,6,3,4,5,4,6,8,6,8,10,8,12,16,2 }; // Ã¿ÖÖÅÆĞÍĞèÒªµÄÅÆÊı
-		int order[19] = { 0,4,13,12,11,6,7,5,3,1,2,8,10,9,17,14,15,16 };
-
-		// Ë«·½¶¼°´ÕÕÕâ¸ö´ÎĞò³öÅÆ
+		// åŒæ–¹éƒ½æŒ‰ç…§è¿™ä¸ªæ¬¡åºå‡ºç‰Œ
 		for (int i = 1; i < 19; i++)
 		{
 			int Size = allCombos[order[i]].size();
@@ -473,7 +471,7 @@ struct CardCombo
 						if (allCombos[4][j].comboLevel < 10)
 							return allCombos[4][j];
 					break;
-					// Èı´øx£¬·É»ú´øx£¬º½Ìì·É»ú´øx£¬×î´óµÄÅÆ²»Òª³¬¹ı Q
+					// ä¸‰å¸¦xï¼Œé£æœºå¸¦xï¼Œèˆªå¤©é£æœºå¸¦xï¼Œæœ€å¤§çš„ç‰Œä¸è¦è¶…è¿‡ Q
 				case 5:
 				case 6:
 				case 7:
@@ -484,24 +482,22 @@ struct CardCombo
 				case 15:
 				case 16:
 				{
-					if (deck.size() - need[order[i]] <= 1)
-						return allCombos[order[i]][0];
-					else
-					{
-						for (int j = 0; j < Size; j++)
-							if (allCombos[order[i]][j].comboLevel < 9)
-								return allCombos[order[i]][j];
-					}
+					for(int j=1;j<=3;j++)
+						if(deck.size()-need[order[i]]*j<=2&&need[order[i]]*j-deck.size()<=2)
+							return allCombos[order[i]][0];
+					for (int j = 0; j < Size; j++)
+						if (allCombos[order[i]][j].comboLevel < 9)
+							return allCombos[order[i]][j];
 					break;
 				}
-				// ÏÂÃæ¿¼ÂÇµ¥ÕÅ 
+				// ä¸‹é¢è€ƒè™‘å•å¼  
 				case 1:
 				{
 					short firstPair = -1;
 					short firstSingle = -1;
 					for (int j = 0; j < Size; j++)
 					{
-						// ¾¡Á¿²»²ğ¶Ô×Ó,µ«Èç¹û×îĞ¡µÄµ¥ÕÅ¶¼±È½Ï´ó(>Q),¾Í±£Áô 
+						// å°½é‡ä¸æ‹†å¯¹å­,ä½†å¦‚æœæœ€å°çš„å•å¼ éƒ½æ¯”è¾ƒå¤§(>Q),å°±ä¿ç•™ 
 						Level level = allCombos[1][j].comboLevel;
 						if (counts[level] == 2 && firstPair == -1)
 							firstPair = j;
@@ -514,31 +510,31 @@ struct CardCombo
 							else break;
 						}
 					}
-					// µ½ÕâÀï£¬×îĞ¡µÄµ¥ÕÅ¶¼>QÁË£¬¿¼ÂÇ×îĞ¡µÄ¶Ô×Ó
-					// Èç¹û×îĞ¡µÄ¶Ô×Ó<Q£¬»òÕßÃ»ÓĞµ¥¶ÀµÄµ¥ÕÅ£¬¾Íµ½ÏÂÒ»²½³ö¶Ô×Ó
-					// ·ñÔò»¹ÊÇ³öµ¥ÕÅ 
+					// åˆ°è¿™é‡Œï¼Œæœ€å°çš„å•å¼ éƒ½>Qäº†ï¼Œè€ƒè™‘æœ€å°çš„å¯¹å­
+					// å¦‚æœæœ€å°çš„å¯¹å­<Qï¼Œæˆ–è€…æ²¡æœ‰å•ç‹¬çš„å•å¼ ï¼Œå°±åˆ°ä¸‹ä¸€æ­¥å‡ºå¯¹å­
+					// å¦åˆ™è¿˜æ˜¯å‡ºå•å¼  
 					if ((firstPair < 9 && firstPair != -1) ||
 						firstSingle == -1) break;
 					else
 						return allCombos[1][firstSingle];
 					break;
 				}
-				default: // ÆäËûµÄ¾ÍÒÀ´Î³ö¼´¿É 
+				default: // å…¶ä»–çš„å°±ä¾æ¬¡å‡ºå³å¯ 
 					return allCombos[order[i]][0];
 				}
 			}
 		}
-		return CardCombo();
+		return allCombos[1][0];
 	}
 
-	// ÏÂÃæÎª½ÓÅÆ²ßÂÔ 
-	template <typename CARD_ITERATOR> //´«Èëµ±Ç°Òª³öÅÆÍæ¼ÒÊÖÅÆµÄµü´úÆ÷ 
+	// ä¸‹é¢ä¸ºæ¥ç‰Œç­–ç•¥ 
+	template <typename CARD_ITERATOR> //ä¼ å…¥å½“å‰è¦å‡ºç‰Œç©å®¶æ‰‹ç‰Œçš„è¿­ä»£å™¨ 
 	CardCombo findFirstValid(CARD_ITERATOR begin, CARD_ITERATOR end) const
 	{
-		if (comboType == CardComboType::PASS) // Èç¹û²»ĞèÒª´ó¹ıË­£¬¾ÍÂÖµ½×Ô¼º³öÅÆ 
+		if (comboType == CardComboType::PASS) // å¦‚æœä¸éœ€è¦å¤§è¿‡è°ï¼Œå°±è½®åˆ°è‡ªå·±å‡ºç‰Œ 
 			return myGivenCombo(begin, end);
 		
-		// ÉÏ¼ÒÊÇÅ©Ãñ£¬²»´ò¶ÓÓÑµÄÇé¿öÓĞ 
+		// ä¸Šå®¶æ˜¯å†œæ°‘ï¼Œä¸æ‰“é˜Ÿå‹çš„æƒ…å†µæœ‰ 
 		if (myPosition != 0 &&
 			lastPlayer != 0 &&
 			(comboLevel >= 8||
@@ -547,34 +543,34 @@ struct CardCombo
 			 ((int)comboType == 3 && cards.size() >= 7)))
 			return CardCombo();
 
-		// ÏÂÃæÊÇ¸ÃÎÒ½ÓÅÆ 
-		// È»ºóÏÈ¿´Ò»ÏÂÊÇ²»ÊÇ»ğ¼ı£¬ÊÇµÄ»°¾Í¹ı
+		// ä¸‹é¢æ˜¯è¯¥æˆ‘æ¥ç‰Œ 
+		// ç„¶åå…ˆçœ‹ä¸€ä¸‹æ˜¯ä¸æ˜¯ç«ç®­ï¼Œæ˜¯çš„è¯å°±è¿‡
 		if (comboType == CardComboType::ROCKET)
 			return CardCombo();
 
-		// ÏÖÔÚ´òËã´ÓÊÖÅÆÖĞ´Õ³öÍ¬ÅÆĞÍµÄÅÆ(ÎŞÂÛµØÖ÷ORÅ©Ãñ)
-		auto deck = vector<Card>(begin, end); // ÊÖÅÆ
-		short counts[MAX_LEVEL + 1] = {};//Ã¿¸öµÈ¼¶ÅÆµÄ¸öÊı 
+		// ç°åœ¨æ‰“ç®—ä»æ‰‹ç‰Œä¸­å‡‘å‡ºåŒç‰Œå‹çš„ç‰Œ(æ— è®ºåœ°ä¸»ORå†œæ°‘)
+		auto deck = vector<Card>(begin, end); // æ‰‹ç‰Œ
+		short counts[MAX_LEVEL + 1] = {};//æ¯ä¸ªç­‰çº§ç‰Œçš„ä¸ªæ•° 
 
 		unsigned short kindCount = 0;
 
-		// ÏÈÊıÒ»ÏÂÊÖÅÆÀïÃ¿ÖÖÅÆÓĞ¶àÉÙ¸ö
+		// å…ˆæ•°ä¸€ä¸‹æ‰‹ç‰Œé‡Œæ¯ç§ç‰Œæœ‰å¤šå°‘ä¸ª
 		for (Card c : deck)
 			counts[card2level(c)]++;
 
-		// ÊÖÅÆÈç¹û²»¹»ÓÃ£¬Ö±½Ó²»ÓÃ´ÕÁË£¬¿´¿´ÄÜ²»ÄÜÕ¨°É
+		// æ‰‹ç‰Œå¦‚æœä¸å¤Ÿç”¨ï¼Œç›´æ¥ä¸ç”¨å‡‘äº†ï¼Œçœ‹çœ‹èƒ½ä¸èƒ½ç‚¸å§
 		if (deck.size() < cards.size())
 			goto failure;
 
-		// ÔÙÊıÒ»ÏÂÊÖÅÆÀïÓĞ¶àÉÙÖÖÅÆ
+		// å†æ•°ä¸€ä¸‹æ‰‹ç‰Œé‡Œæœ‰å¤šå°‘ç§ç‰Œ
 		for (short c : counts)
 			if (c)
 				kindCount++;
 
 		{
-			// ¿ªÊ¼Ôö´óÖ÷ÅÆ
+			// å¼€å§‹å¢å¤§ä¸»ç‰Œ
 			int mainPackCount = findMaxSeq();
-			// ¿´¿´ÊÇ·ñÊÇÁ¬ĞøÅÆĞÍ(Ë³×Ó¡¢Á¬¶Ô¡¢·É»ú¡¢º½Ìì·É»ú)£¬Ò²¼´²»ÊÇ³öµÄµ¥ÕÅ¡¢Ò»¶Ô¡­¡­ 
+			// çœ‹çœ‹æ˜¯å¦æ˜¯è¿ç»­ç‰Œå‹(é¡ºå­ã€è¿å¯¹ã€é£æœºã€èˆªå¤©é£æœº)ï¼Œä¹Ÿå³ä¸æ˜¯å‡ºçš„å•å¼ ã€ä¸€å¯¹â€¦â€¦ 
 			bool isSequential =
 				comboType == CardComboType::STRAIGHT ||
 				comboType == CardComboType::STRAIGHT2 ||
@@ -585,67 +581,67 @@ struct CardCombo
 				comboType == CardComboType::SSHUTTLE2 ||
 				comboType == CardComboType::SSHUTTLE4;
 
-			// ÉèÖÃÊı×éÓÃÀ´´æËùÓĞ¿ÉĞĞ½â
+			// è®¾ç½®æ•°ç»„ç”¨æ¥å­˜æ‰€æœ‰å¯è¡Œè§£
 			vector<vector<short> > myCombos;
 
-			for (Level i = 1; ; i++) // Ôö´ó¶àÉÙ
+			for (Level i = 1; ; i++) // å¢å¤§å¤šå°‘
 			{
 				for (int j = 0; j < mainPackCount; j++)
 				{
-					int level = packs[j].level + i; // Ôö¼Óºó¶ÔÓ¦µÄÅÆ 
+					int level = packs[j].level + i; // å¢åŠ åå¯¹åº”çš„ç‰Œ 
 					if ((comboType == CardComboType::SINGLE && level > MAX_LEVEL) ||
 						(isSequential && level > MAX_STRAIGHT_LEVEL) ||
 						(comboType != CardComboType::SINGLE && !isSequential && level >= level_joker))
 						goto findSol;
 
-					// Èç¹ûÊÖÅÆÖĞÕâÖÖÅÆ²»¹»£¬¾Í²»ÓÃ¼ÌĞøÔöÁË
+					// å¦‚æœæ‰‹ç‰Œä¸­è¿™ç§ç‰Œä¸å¤Ÿï¼Œå°±ä¸ç”¨ç»§ç»­å¢äº†
 					if (counts[level] < packs[j].count)
 						goto next;
 				}
 
 				{
-					// Èç¹ûÊÖÅÆµÄÖÖÀàÊı²»¹»£¬ÄÇ´ÓÅÆµÄÖÖÀàÊı¾Í²»¹»£¬Ò²²»ĞĞ
+					// å¦‚æœæ‰‹ç‰Œçš„ç§ç±»æ•°ä¸å¤Ÿï¼Œé‚£ä»ç‰Œçš„ç§ç±»æ•°å°±ä¸å¤Ÿï¼Œä¹Ÿä¸è¡Œ
 					if (kindCount < packs.size())
 						continue;
 
 
-					// ºÃÖÕÓÚ¿ÉÒÔÁË
-					// ¼ÆËãÃ¿ÖÖÅÆµÄÒªÇóÊıÄ¿°É
+					// å¥½ç»ˆäºå¯ä»¥äº†
+					// è®¡ç®—æ¯ç§ç‰Œçš„è¦æ±‚æ•°ç›®å§
 					short requiredCounts[MAX_LEVEL + 1] = {};
-					for (int j = 0; j < mainPackCount; j++)  // Ö÷ÅÆ 
+					for (int j = 0; j < mainPackCount; j++)  // ä¸»ç‰Œ 
 						requiredCounts[packs[j].level + i] = packs[j].count;
 
-					unsigned int currentHave = 0; // ¿´¿´µ±Ç°ÒªÇóµÄ´ÓÅÆÊÇ·ñ×ã¹» 
-					for (unsigned j = mainPackCount; j < packs.size(); j++) // ´ÓÅÆ£¬¾ÍÒÀ´Î´Óµ±Ç°ÊÖÅÆ×îĞ¡µÄÑ¡Æğ
+					unsigned int currentHave = 0; // çœ‹çœ‹å½“å‰è¦æ±‚çš„ä»ç‰Œæ˜¯å¦è¶³å¤Ÿ 
+					for (unsigned j = mainPackCount; j < packs.size(); j++) // ä»ç‰Œï¼Œå°±ä¾æ¬¡ä»å½“å‰æ‰‹ç‰Œæœ€å°çš„é€‰èµ·
 						for (Level k = 0; k <= MAX_LEVEL; k++)
 						{
-							if (requiredCounts[k] || counts[k] < packs[j].count)//²»ÄÜºÍÖ÷ÅÆÏàÍ¬£¬ÅÆÊı²»¹»Ò²²»ĞĞ 
+							if (requiredCounts[k] || counts[k] < packs[j].count)//ä¸èƒ½å’Œä¸»ç‰Œç›¸åŒï¼Œç‰Œæ•°ä¸å¤Ÿä¹Ÿä¸è¡Œ 
 								continue;
 							requiredCounts[k] = packs[j].count;
 							currentHave++;
 							break;
 						}
-					// Èç¹û¿ÉÒÔµÄ»°£¬½«Õâ¸ö¿ÉĞĞ½â·ÅÈë¿ÉĞĞ½âÊı×é 
+					// å¦‚æœå¯ä»¥çš„è¯ï¼Œå°†è¿™ä¸ªå¯è¡Œè§£æ”¾å…¥å¯è¡Œè§£æ•°ç»„ 
 					if (currentHave == packs.size() - mainPackCount)
 						myCombos.push_back(vector<short>(requiredCounts, requiredCounts + MAX_LEVEL + 1));
 				}
 
 			next:
-				; // ÔÙÔö´ó
+				; // å†å¢å¤§
 			}
 
 		findSol:
 			int sumOfSol = myCombos.size();
-			if (!sumOfSol) //Ã»ÕÒµ½¿ÉĞĞ½â£¬Ö±½ÓÈ¥ÕÒÕ¨µ¯ 
+			if (!sumOfSol) //æ²¡æ‰¾åˆ°å¯è¡Œè§£ï¼Œç›´æ¥å»æ‰¾ç‚¸å¼¹ 
 				goto failure;
 
 			vector<short> bestSol;
-		// ÏÂÃæÎÒÃÇÒª´ÓmyCombosÖĞÕÒ³ö²»²ğË³×ÓµÄÄÇĞ©ÅÆ 
+		// ä¸‹é¢æˆ‘ä»¬è¦ä»myCombosä¸­æ‰¾å‡ºä¸æ‹†é¡ºå­çš„é‚£äº›ç‰Œ 
 			int best=0;
 			vector<vector<short> > tmp_combo;
 			for(int i=0;i<sumOfSol;i++) 
 			{
-				vector<short> current_combo=myCombos[i];// ×¢ÒâÕâÀïÒª¸´ÖÆÒ»¸ö 
+				vector<short> current_combo=myCombos[i];// æ³¨æ„è¿™é‡Œè¦å¤åˆ¶ä¸€ä¸ª 
 				vector<Card> tmp_card;
 				for (Card c : deck)
 				{
@@ -673,7 +669,7 @@ struct CardCombo
 			
 			if (comboType == CardComboType::SINGLE)
 			{
-				int haveSingleSol = 0; // ÊÇµ¥ÅÆµÄÊıÁ¿ 
+				int haveSingleSol = 0; // æ˜¯å•ç‰Œçš„æ•°é‡ 
 				for (auto it = myCombos.begin(); it != myCombos.end(); ++it)
 				{
 					int level = -1;
@@ -686,9 +682,9 @@ struct CardCombo
 					if (counts[level] == 1)
 						haveSingleSol++;
 				}
-				if (haveSingleSol) // Èç¹ûÓĞµ¥ÅÆ 
+				if (haveSingleSol) // å¦‚æœæœ‰å•ç‰Œ 
 				{
-					sumOfSol = haveSingleSol; // °ÑÆäËûµÄ·Çµ¥ÅÆ´ÓmyCombosÖĞÈ¥³ı 
+					sumOfSol = haveSingleSol; // æŠŠå…¶ä»–çš„éå•ç‰Œä»myCombosä¸­å»é™¤ 
 					for (auto it = myCombos.begin(); it != myCombos.end(); )
 					{
 						int level = -1;
@@ -720,7 +716,7 @@ struct CardCombo
 			else if (myPosition == 0 && comboLevel >= 7)
 				bestSol = myCombos[(sumOfSol - 1) / 2];
 				
-			// ¿ªÊ¼²úÉú½â
+			// å¼€å§‹äº§ç”Ÿè§£
 			vector<Card> solve;
 			for (Card c : deck)
 			{
@@ -735,12 +731,12 @@ struct CardCombo
 		}
 
 	failure:
-		// ×îºó¿´Ò»ÏÂÄÜ²»ÄÜÕ¨°É
+		// æœ€åçœ‹ä¸€ä¸‹èƒ½ä¸èƒ½ç‚¸å§
 		for (Level i = 0; i < level_joker; i++)
-			if (counts[i] == 4) // ´æÔÚÕ¨µ¯ 
+			if (counts[i] == 4) // å­˜åœ¨ç‚¸å¼¹ 
 			{
 				Card bomb[] = { Card(i * 4), Card(i * 4 + 1), Card(i * 4 + 2), Card(i * 4 + 3) };
-				//ÉÏ´Î³öÅÆµÄÊÇµØÖ÷£¬³öµÄ²»ÊÇµ¥ÕÅ£¬ÇÒ±¾´Î³öÅÆµÄÊıÁ¿>=8£¬»òÕß³öÁËÒ»¶Ô¶ş(Èı¸ö¶ş)£¬¾ÍÕ¨¡£
+				//ä¸Šæ¬¡å‡ºç‰Œçš„æ˜¯åœ°ä¸»ï¼Œå‡ºçš„ä¸æ˜¯å•å¼ ï¼Œä¸”æœ¬æ¬¡å‡ºç‰Œçš„æ•°é‡>=8ï¼Œæˆ–è€…å‡ºäº†ä¸€å¯¹äºŒ(ä¸‰ä¸ªäºŒ)ï¼Œå°±ç‚¸ã€‚
 				if (myPosition != 0 && lastPlayer == 0 && comboType != CardComboType::SINGLE &&
 					(cards.size() >= 8 ||
 					((comboType == CardComboType::PAIR || comboType == CardComboType::TRIPLET || comboType == CardComboType::TRIPLET1 || comboType == CardComboType::TRIPLET2) && comboLevel == 12)))
@@ -752,7 +748,7 @@ struct CardCombo
 					return CardCombo(bomb, bomb + 4);
 			}
 
-		// ÓĞÃ»ÓĞ»ğ¼ı£¿
+		// æœ‰æ²¡æœ‰ç«ç®­ï¼Ÿ
 		if (counts[level_joker] + counts[level_JOKER] == 2)
 		{
 			Card rocket[] = { card_joker, card_JOKER };
@@ -772,8 +768,8 @@ struct CardCombo
 	void debugPrint()
 	{
 #ifndef _BOTZONE_ONLINE
-		std::cout << "¡¾" << cardComboStrings[(int)comboType] <<
-			"¹²" << cards.size() << "ÕÅ£¬´óĞ¡Ğò" << comboLevel << "¡¿";
+		std::cout << "ã€" << cardComboStrings[(int)comboType] <<
+			"å…±" << cards.size() << "å¼ ï¼Œå¤§å°åº" << comboLevel << "ã€‘";
 #endif
 	}
 }; //end class CardCombo
@@ -785,17 +781,17 @@ void SearchCard(vector<CardCombo>* Combos,int& comboType, int currentLevel, shor
 		Combos[comboType].push_back(CardCombo(tmp.begin(), tmp.end()));
 		return;
 	}
-	short off = target - already; //»¹²î¶àÉÙÕÅ
+	short off = target - already; //è¿˜å·®å¤šå°‘å¼ 
 	for (int i = currentLevel; i < 12 - off; i++)
-		// µ±Ç°µÈ¼¶µÄÅÆ±ØĞë1.ÕÅÊı>=cardType,2.²»ÄÜÊÇlevelOf_ÀïµÄ
+		// å½“å‰ç­‰çº§çš„ç‰Œå¿…é¡»1.å¼ æ•°>=cardType,2.ä¸èƒ½æ˜¯levelOf_é‡Œçš„
 		if (counts[i] == cardType && !levelOf_.count(i))
 		{
-			int l = beginOfCounts[i];   // ÕÒµ½µÈ¼¶iµÄÅÆÔÚdeckÖĞµÄÎ»ÖÃ
+			int l = beginOfCounts[i];   // æ‰¾åˆ°ç­‰çº§içš„ç‰Œåœ¨deckä¸­çš„ä½ç½®
 			for (int j = 0; j < cardType; j++)
 				tmp.push_back(deck[l + j]);
 			SearchCard(Combos,comboType, i + 1, cardType, already + 1, target, tmp, deck, counts, beginOfCounts, levelOf_);
 			for (int j = 0; j < cardType; j++)
-				tmp.pop_back(); // »ØËİ
+				tmp.pop_back(); // å›æº¯
 		}
 }
 
@@ -835,19 +831,19 @@ void findSeq(vector<Card>& deck,vector<CardCombo>& Combos)
 void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 	{
 		short counts[MAX_LEVEL + 1] = {};
-		short beginOfCounts[MAX_LEVEL + 1] = {}; //  Ã¿¸öµÈ¼¶ÅÆÔÚÊÖÅÆÖĞµÄÆğÊ¼Î»ÖÃ
-		int currentType;   // µ±Ç°Ã¶¾ÙÀàĞÍ 
-		int Size = deck.size();// µ±Ç°ÊÖÅÆÊıÁ¿
+		short beginOfCounts[MAX_LEVEL + 1] = {}; //  æ¯ä¸ªç­‰çº§ç‰Œåœ¨æ‰‹ç‰Œä¸­çš„èµ·å§‹ä½ç½®
+		int currentType;   // å½“å‰æšä¸¾ç±»å‹ 
+		int Size = deck.size();// å½“å‰æ‰‹ç‰Œæ•°é‡
 
-		sort(deck.begin(), deck.end()); //ÏÈÅÅ¸öĞòÔÙËµ°É... 
+		sort(deck.begin(), deck.end()); //å…ˆæ’ä¸ªåºå†è¯´å§... 
 		for (Card c : deck)
-			counts[card2level(c)]++;  // ÊıÒ»ÏÂ¸÷µÈ¼¶µÄÅÆÓĞ¶àÉÙ
+			counts[card2level(c)]++;  // æ•°ä¸€ä¸‹å„ç­‰çº§çš„ç‰Œæœ‰å¤šå°‘
 
 		for (int i = 1; i <= 14; i++)
 			beginOfCounts[i] = beginOfCounts[i - 1] + counts[i - 1];
 
-		// ÏÂÃæ¿ªÊ¼Ã¶¾Ù£¬ÒòÎªÍ¬µÈ¼¶µÄÅÆÊÇÃ»ÓĞÇø±ğµÄ£¬ËùÒÔÖ»¿¼ÂÇ¸ÃµÈ¼¶µÄÇ°kÕÅ
-		// Ê×ÏÈÃ¶¾Ùµ¥ÕÅ(°üÀ¨´óĞ¡Íõ)
+		// ä¸‹é¢å¼€å§‹æšä¸¾ï¼Œå› ä¸ºåŒç­‰çº§çš„ç‰Œæ˜¯æ²¡æœ‰åŒºåˆ«çš„ï¼Œæ‰€ä»¥åªè€ƒè™‘è¯¥ç­‰çº§çš„å‰kå¼ 
+		// é¦–å…ˆæšä¸¾å•å¼ (åŒ…æ‹¬å¤§å°ç‹)
 		currentType = (int)CardComboType::SINGLE;
 		for (int i = 0; i <= 14; i++)
 			if (counts[i])
@@ -857,42 +853,42 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 				Combos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
 			}
 
-		// ÏÂÃæÃ¶¾Ù¶Ô×Ó
+		// ä¸‹é¢æšä¸¾å¯¹å­
 		currentType = (int)CardComboType::PAIR;
-		for (int i = 0; i <13; i++) // ×î¶àµ½Ò»¶Ô2
+		for (int i = 0; i <13; i++) // æœ€å¤šåˆ°ä¸€å¯¹2
 			if (counts[i] == 2)
 			{
 				vector<Card> tmp;
-				int l = beginOfCounts[i];  // µÈ¼¶iµÄÅÆÔÚdeckÖĞµÄÆğÊ¼Î»ÖÃl
+				int l = beginOfCounts[i];  // ç­‰çº§içš„ç‰Œåœ¨deckä¸­çš„èµ·å§‹ä½ç½®l
 				tmp.push_back(deck[l]);
 				tmp.push_back(deck[l + 1]);
 				Combos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
 			}
 
-		// ÏÂÃæÃ¶¾Ùµ¥Ë³
+		// ä¸‹é¢æšä¸¾å•é¡º
 		currentType = (int)CardComboType::STRAIGHT;
-		for (int l = 0; l < 8; l++) // Ã¶¾ÙË³×ÓÆğµã
-			for (int r = l + 4; r < 12; r++) // Ã¶¾ÙË³×ÓÖÕµã
+		for (int l = 0; l < 8; l++) // æšä¸¾é¡ºå­èµ·ç‚¹
+			for (int r = l + 4; r < 12; r++) // æšä¸¾é¡ºå­ç»ˆç‚¹
 			{
 				int haveSeq = -1;
 				for (int i = l; i <= r; i++)
 					if (!counts[i])
 					{
-						haveSeq = i; // ÔÚhaveSeq´¦¼ä¶Ï 
+						haveSeq = i; // åœ¨haveSeqå¤„é—´æ–­ 
 						break;
 					}
-				if (haveSeq != -1) // ÔÚ[l,r]ÖĞ¼äÄ³´¦²»Âú×ãÁË£¬rÔÙÔö´óÒ²²»»áÂú×ã
+				if (haveSeq != -1) // åœ¨[l,r]ä¸­é—´æŸå¤„ä¸æ»¡è¶³äº†ï¼Œrå†å¢å¤§ä¹Ÿä¸ä¼šæ»¡è¶³
 				{
 					l = haveSeq;
 					break;
 				}
 				vector<Card> tmp;
-				for (int i = l; i <= r; i++) // Ã¿¸öÑ¡µÚÒ»ÕÅ¾ÍĞĞÁË
+				for (int i = l; i <= r; i++) // æ¯ä¸ªé€‰ç¬¬ä¸€å¼ å°±è¡Œäº†
 					tmp.push_back(deck[beginOfCounts[i]]);
 				Combos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
 			}
 
-		// ÏÂÃæÃ¶¾ÙË«Ë³
+		// ä¸‹é¢æšä¸¾åŒé¡º
 		currentType = (int)CardComboType::STRAIGHT2;
 		for (int l = 0; l < 10; l++)
 			for (int r = l + 2; r < 12; r++)
@@ -916,7 +912,7 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 				Combos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
 			}
 
-		// ÏÂÃæÃ¶¾ÙÈıÌõ
+		// ä¸‹é¢æšä¸¾ä¸‰æ¡
 		currentType = (int)CardComboType::TRIPLET;
 		for (int i = 0; i<13; i++)
 			if (counts[i] == 3)
@@ -929,7 +925,7 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 				Combos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
 			}
 
-		// ÏÂÃæÃ¶¾ÙÕ¨µ¯
+		// ä¸‹é¢æšä¸¾ç‚¸å¼¹
 		currentType = (int)CardComboType::BOMB;
 		for (int i = 0; i<13; i++)
 			if (counts[i] == 4)
@@ -941,13 +937,13 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 				Combos[currentType].push_back(CardCombo(tmp.begin(), tmp.end()));
 			}
 
-		// ÏÂÃæÃ¶¾Ù×éºÏÅÆ£¬Ö±½ÓÀûÓÃÉÏÃæÎÒÃÇÇó³öµÄÖ÷ÅÆ¼´¿É£¬Îª´ËĞèÒªÏÈµÃ³öÃ¿ÖÖÅÆĞÍµÄÊıÁ¿
+		// ä¸‹é¢æšä¸¾ç»„åˆç‰Œï¼Œç›´æ¥åˆ©ç”¨ä¸Šé¢æˆ‘ä»¬æ±‚å‡ºçš„ä¸»ç‰Œå³å¯ï¼Œä¸ºæ­¤éœ€è¦å…ˆå¾—å‡ºæ¯ç§ç‰Œå‹çš„æ•°é‡
 		int Triple = (int)CardComboType::TRIPLET;
 		int TripleSize = Combos[Triple].size();
 		int Quad = (int)CardComboType::BOMB;
 		int QuadSize = Combos[Quad].size();
 
-		// ÏÂÃæÃ¶¾ÙÈı´øÒ»ÕÅ
+		// ä¸‹é¢æšä¸¾ä¸‰å¸¦ä¸€å¼ 
 		currentType = (int)CardComboType::TRIPLET1;
 		for (int i = 0; i < TripleSize; i++)
 		{
@@ -962,7 +958,7 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 				}
 		}
 
-		// ÏÂÃæÃ¶¾ÙÈı´ø¶ş(Ò»¶Ô)
+		// ä¸‹é¢æšä¸¾ä¸‰å¸¦äºŒ(ä¸€å¯¹)
 		currentType = (int)CardComboType::TRIPLET2;
 		for (int i = 0; i < TripleSize; i++)
 		{
@@ -979,7 +975,7 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 				}
 		}
 
-		// ÏÂÃæÃ¶¾ÙËÄ´ø¶şµ¥£¬Ö±½ÓÓÃÉÏÃæÃ¶¾ÙµÄÕ¨µ¯
+		// ä¸‹é¢æšä¸¾å››å¸¦äºŒå•ï¼Œç›´æ¥ç”¨ä¸Šé¢æšä¸¾çš„ç‚¸å¼¹
 		currentType = (int)CardComboType::QUADRUPLE2;
 		for (int i = 0; i < QuadSize; i++)
 		{
@@ -997,7 +993,7 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 					}
 		}
 
-		// ÏÂÃæÃ¶¾ÙËÄ´ø¶ş¶Ô
+		// ä¸‹é¢æšä¸¾å››å¸¦äºŒå¯¹
 		currentType = (int)CardComboType::QUADRUPLE4;
 		for (int i = 0; i < QuadSize; i++)
 		{
@@ -1017,7 +1013,7 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 					}
 		}
 
-		// ÏÂÃæÃ¶¾Ù·É»ú²»´øÒí
+		// ä¸‹é¢æšä¸¾é£æœºä¸å¸¦ç¿¼
 		currentType = (int)CardComboType::PLANE;
 		int lastLevel;
 		for (int i = 0; i < TripleSize; i++)
@@ -1027,7 +1023,7 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 			for (int j = i + 1; j < TripleSize; j++)
 			{
 				int currentLevel = Combos[Triple][j].comboLevel;
-				if (lastLevel + 1 == currentLevel && currentLevel != 12) // ²»ÄÜÓĞ2
+				if (lastLevel + 1 == currentLevel && currentLevel != 12) // ä¸èƒ½æœ‰2
 				{
 					lastLevel = currentLevel;
 					tmp.insert(tmp.end(), Combos[Triple][j].cards.begin(), Combos[Triple][j].cards.end());
@@ -1038,7 +1034,7 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 			}
 		}
 
-		// ÏÂÃæÃ¶¾Ùº½Ìì·É»ú²»´øÒí
+		// ä¸‹é¢æšä¸¾èˆªå¤©é£æœºä¸å¸¦ç¿¼
 		currentType = (int)CardComboType::SSHUTTLE;
 		for (int i = 0; i < QuadSize; i++)
 		{
@@ -1062,19 +1058,19 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 		int SShuttle = (int)CardComboType::SSHUTTLE;
 		int SShuttleSize = Combos[SShuttle].size();
 
-		// ÏÂÃæÃ¶¾Ù·É»ú´øĞ¡Òí
+		// ä¸‹é¢æšä¸¾é£æœºå¸¦å°ç¿¼
 		currentType = (int)CardComboType::PLANE1;
 		for (int i = 0; i < PlaneSize; i++)
 		{
 			vector<Card> tmp = Combos[Plane][i].cards;
-			set<Level> levels;   // µ±Ç°·É»úÖĞËùÓĞÈıÌõµÄµÈ¼¶
+			set<Level> levels;   // å½“å‰é£æœºä¸­æ‰€æœ‰ä¸‰æ¡çš„ç­‰çº§
 			for (Card c : tmp)
 				levels.insert(card2level(c));
-			int levelCount = levels.size(); // Ò»¹²ĞèÒªÕâÃ´¶àÕÅµ¥ÕÅ
+			int levelCount = levels.size(); // ä¸€å…±éœ€è¦è¿™ä¹ˆå¤šå¼ å•å¼ 
 			SearchCard(Combos,currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
 		}
 
-		// ÏÂÃæÃ¶¾Ù·É»ú´ø´óÒí
+		// ä¸‹é¢æšä¸¾é£æœºå¸¦å¤§ç¿¼
 		currentType = (int)CardComboType::PLANE2;
 		for (int i = 0; i < PlaneSize; i++)
 		{
@@ -1082,23 +1078,23 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 			set<Level> levels;
 			for (Card c : tmp)
 				levels.insert(card2level(c));
-			int levelCount = levels.size(); // Ò»¹²ĞèÒªÕâÃ´¶à¶Ô×Ó
+			int levelCount = levels.size(); // ä¸€å…±éœ€è¦è¿™ä¹ˆå¤šå¯¹å­
 			SearchCard(Combos,currentType, 0, 2, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
 		}
 
-		// ÏÂÃæÃ¶¾Ùº½Ìì·É»ú´øĞ¡Òí
+		// ä¸‹é¢æšä¸¾èˆªå¤©é£æœºå¸¦å°ç¿¼
 		currentType = (int)CardComboType::SSHUTTLE2;
 		for (int i = 0; i < SShuttleSize; i++)
 		{
 			vector<Card> tmp = Combos[SShuttle][i].cards;
-			set<Level> levels;   // µ±Ç°º½Ìì·É»úÖĞËùÓĞËÄÌõµÄµÈ¼¶
+			set<Level> levels;   // å½“å‰èˆªå¤©é£æœºä¸­æ‰€æœ‰å››æ¡çš„ç­‰çº§
 			for (Card c : tmp)
 				levels.insert(card2level(c));
 			int levelCount = 2 * levels.size();
 			SearchCard(Combos,currentType, 0, 1, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
 		}
 
-		// ÏÂÃæÃ¶¾Ùº½Ìì·É»ú´ø´óÒí
+		// ä¸‹é¢æšä¸¾èˆªå¤©é£æœºå¸¦å¤§ç¿¼
 		currentType = (int)CardComboType::SSHUTTLE4;
 		for (int i = 0; i < SShuttleSize; i++)
 		{
@@ -1110,7 +1106,7 @@ void findAllCombos(vector<Card>& deck,vector<CardCombo>* Combos)
 			SearchCard(Combos,currentType, 0, 2, 0, levelCount, tmp, deck, counts, beginOfCounts, levels);
 		}
 
-		// ÏÂÃæ¿¼ÂÇ»ğ¼ı
+		// ä¸‹é¢è€ƒè™‘ç«ç®­
 		currentType = (int)CardComboType::ROCKET;
 		if (counts[13] == 1 && counts[14] == 1)
 		{
@@ -1128,52 +1124,52 @@ namespace BotzoneIO
 	using namespace std;
 	void input()
 	{
-		// ¶ÁÈëÊäÈë£¨Æ½Ì¨ÉÏµÄÊäÈëÊÇµ¥ĞĞ£©
+		// è¯»å…¥è¾“å…¥ï¼ˆå¹³å°ä¸Šçš„è¾“å…¥æ˜¯å•è¡Œï¼‰
 		string line;
 		getline(cin, line);
 		Json::Value input;
 		Json::Reader reader;
 		reader.parse(line, input);
 
-		// Ê×ÏÈ´¦ÀíµÚÒ»»ØºÏ£¬µÃÖª×Ô¼ºÊÇË­¡¢ÓĞÄÄĞ©ÅÆ
+		// é¦–å…ˆå¤„ç†ç¬¬ä¸€å›åˆï¼Œå¾—çŸ¥è‡ªå·±æ˜¯è°ã€æœ‰å“ªäº›ç‰Œ
 		{
-			auto firstRequest = input["requests"][0u]; // ÏÂ±êĞèÒªÊÇ unsigned£¬¿ÉÒÔÍ¨¹ıÔÚÊı×ÖºóÃæ¼ÓuÀ´×öµ½
+			auto firstRequest = input["requests"][0u]; // ä¸‹æ ‡éœ€è¦æ˜¯ unsignedï¼Œå¯ä»¥é€šè¿‡åœ¨æ•°å­—åé¢åŠ uæ¥åšåˆ°
 			auto own = firstRequest["own"];
 			auto llpublic = firstRequest["public"];
 			auto history = firstRequest["history"];
-			for (unsigned i = 0; i < own.size(); i++)  //ÎÒµÄÅÆ 
+			for (unsigned i = 0; i < own.size(); i++)  //æˆ‘çš„ç‰Œ 
 				myCards.insert(own[i].asInt());
-			for (unsigned i = 0; i < llpublic.size(); i++) // µØÖ÷±»¹«¿ªµÄÈıÕÅÅÆ 
+			for (unsigned i = 0; i < llpublic.size(); i++) // åœ°ä¸»è¢«å…¬å¼€çš„ä¸‰å¼ ç‰Œ 
 				landlordPublicCards.insert(llpublic[i].asInt());
 			if (history[0u].size() == 0)
 				if (history[1].size() == 0)
-					myPosition = 0; // ÉÏÉÏ¼ÒºÍÉÏ¼Ò¶¼Ã»³öÅÆ£¬ËµÃ÷ÊÇµØÖ÷
+					myPosition = 0; // ä¸Šä¸Šå®¶å’Œä¸Šå®¶éƒ½æ²¡å‡ºç‰Œï¼Œè¯´æ˜æ˜¯åœ°ä¸»
 				else
-					myPosition = 1; // ÉÏÉÏ¼ÒÃ»³öÅÆ£¬µ«ÊÇÉÏ¼Ò³öÅÆÁË£¬ËµÃ÷ÊÇÅ©Ãñ¼×
+					myPosition = 1; // ä¸Šä¸Šå®¶æ²¡å‡ºç‰Œï¼Œä½†æ˜¯ä¸Šå®¶å‡ºç‰Œäº†ï¼Œè¯´æ˜æ˜¯å†œæ°‘ç”²
 			else
-				myPosition = 2; // ÉÏÉÏ¼Ò³öÅÆÁË£¬ËµÃ÷ÊÇÅ©ÃñÒÒ
+				myPosition = 2; // ä¸Šä¸Šå®¶å‡ºç‰Œäº†ï¼Œè¯´æ˜æ˜¯å†œæ°‘ä¹™
 		}
 
-		// historyÀïµÚÒ»Ïî£¨ÉÏÉÏ¼Ò£©ºÍµÚ¶şÏî£¨ÉÏ¼Ò£©·Ö±ğÊÇË­µÄ¾ö²ß
+		// historyé‡Œç¬¬ä¸€é¡¹ï¼ˆä¸Šä¸Šå®¶ï¼‰å’Œç¬¬äºŒé¡¹ï¼ˆä¸Šå®¶ï¼‰åˆ†åˆ«æ˜¯è°çš„å†³ç­–
 		int whoInHistory[] = { (myPosition - 2 + PLAYER_COUNT) % PLAYER_COUNT, (myPosition - 1 + PLAYER_COUNT) % PLAYER_COUNT };
 
 		int turn = input["requests"].size();
 		for (int i = 0; i < turn; i++)
 		{
-			// Öğ´Î»Ö¸´¾ÖÃæµ½µ±Ç°
-			auto history = input["requests"][i]["history"]; // Ã¿¸öÀúÊ·ÖĞÓĞÉÏ¼ÒºÍÉÏÉÏ¼Ò³öµÄÅÆ
+			// é€æ¬¡æ¢å¤å±€é¢åˆ°å½“å‰
+			auto history = input["requests"][i]["history"]; // æ¯ä¸ªå†å²ä¸­æœ‰ä¸Šå®¶å’Œä¸Šä¸Šå®¶å‡ºçš„ç‰Œ
 			int howManyPass = 0;
 			for (int p = 0; p < 2; p++)
 			{
-				int player = whoInHistory[p]; // ÊÇË­³öµÄÅÆ
-				auto playerAction = history[p]; // ³öµÄÄÄĞ©ÅÆ
+				int player = whoInHistory[p]; // æ˜¯è°å‡ºçš„ç‰Œ
+				auto playerAction = history[p]; // å‡ºçš„å“ªäº›ç‰Œ
 				vector<Card> playedCards;
-				for (unsigned _ = 0; _ < playerAction.size(); _++) // Ñ­»·Ã¶¾ÙÕâ¸öÈË³öµÄËùÓĞÅÆ
+				for (unsigned _ = 0; _ < playerAction.size(); _++) // å¾ªç¯æšä¸¾è¿™ä¸ªäººå‡ºçš„æ‰€æœ‰ç‰Œ
 				{
-					int card = playerAction[_].asInt(); // ÕâÀïÊÇ³öµÄÒ»ÕÅÅÆ
+					int card = playerAction[_].asInt(); // è¿™é‡Œæ˜¯å‡ºçš„ä¸€å¼ ç‰Œ
 					playedCards.push_back(card);
 				}
-				whatTheyPlayed[player].push_back(playedCards); // ¼ÇÂ¼Õâ¶ÎÀúÊ·
+				whatTheyPlayed[player].push_back(playedCards); // è®°å½•è¿™æ®µå†å²
 				cardRemaining[player] -= playerAction.size();
 
 				if (playerAction.size() == 0)
@@ -1181,34 +1177,34 @@ namespace BotzoneIO
 				else
 				{
 					lastValidCombo = CardCombo(playedCards.begin(), playedCards.end());
-					lastPlayer = player;  // ÉèÖÃÉÏÒ»´Î³öÅÆÍæ¼Ò 
+					lastPlayer = player;  // è®¾ç½®ä¸Šä¸€æ¬¡å‡ºç‰Œç©å®¶ 
 				}
 
 			}
 
-			if (howManyPass == 2)  //ÉÏ¼ÒºÍÉÏÉÏ¼Ò¶¼PASSÁË 
+			if (howManyPass == 2)  //ä¸Šå®¶å’Œä¸Šä¸Šå®¶éƒ½PASSäº† 
 				lastValidCombo = CardCombo();
 
 			if (i < turn - 1)
 			{
-				// »¹Òª»Ö¸´×Ô¼ºÔø¾­³ö¹ıµÄÅÆ
-				auto playerAction = input["responses"][i]; // ³öµÄÄÄĞ©ÅÆ
+				// è¿˜è¦æ¢å¤è‡ªå·±æ›¾ç»å‡ºè¿‡çš„ç‰Œ
+				auto playerAction = input["responses"][i]; // å‡ºçš„å“ªäº›ç‰Œ
 				vector<Card> playedCards;
-				for (unsigned _ = 0; _ < playerAction.size(); _++) // Ñ­»·Ã¶¾Ù×Ô¼º³öµÄËùÓĞÅÆ
+				for (unsigned _ = 0; _ < playerAction.size(); _++) // å¾ªç¯æšä¸¾è‡ªå·±å‡ºçš„æ‰€æœ‰ç‰Œ
 				{
-					int card = playerAction[_].asInt(); // ÕâÀïÊÇ×Ô¼º³öµÄÒ»ÕÅÅÆ
-					myCards.erase(card); // ´Ó×Ô¼ºÊÖÅÆÖĞÉ¾µô
+					int card = playerAction[_].asInt(); // è¿™é‡Œæ˜¯è‡ªå·±å‡ºçš„ä¸€å¼ ç‰Œ
+					myCards.erase(card); // ä»è‡ªå·±æ‰‹ç‰Œä¸­åˆ æ‰
 					playedCards.push_back(card);
 				}
-				whatTheyPlayed[myPosition].push_back(playedCards); // ¼ÇÂ¼Õâ¶ÎÀúÊ·
+				whatTheyPlayed[myPosition].push_back(playedCards); // è®°å½•è¿™æ®µå†å²
 				cardRemaining[myPosition] -= playerAction.size();
 			}
 		}
 	} // end input() 
 
 	  /**
-	  * Êä³ö¾ö²ß£¬beginÊÇµü´úÆ÷Æğµã£¬endÊÇµü´úÆ÷ÖÕµã
-	  * CARD_ITERATORÊÇCard£¨¼´short£©ÀàĞÍµÄµü´úÆ÷
+	  * è¾“å‡ºå†³ç­–ï¼Œbeginæ˜¯è¿­ä»£å™¨èµ·ç‚¹ï¼Œendæ˜¯è¿­ä»£å™¨ç»ˆç‚¹
+	  * CARD_ITERATORæ˜¯Cardï¼ˆå³shortï¼‰ç±»å‹çš„è¿­ä»£å™¨
 	  */
 	template <typename CARD_ITERATOR>
 	void output(CARD_ITERATOR begin, CARD_ITERATOR end)
