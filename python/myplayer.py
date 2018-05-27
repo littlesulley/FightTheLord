@@ -20,11 +20,11 @@ class DeepQLearning():
 
     def restore(self):
         self.saver = tf.train.Saver(tf.global_variables())
-        self.saver.restore(self.session, "./model/saved_networks")
+        self.saver.restore(self.session, "./python/model/saved_networks")
 
     
     def save(self):
-        self.saver.save(self.session, "./model/saved_networks")
+        self.saver.save(self.session, "./python/model/saved_networks")
 
     def creat_network(self):
         self.stat_feats=tf.placeholder(tf.float32,[None,self.card_number,self.card_colour,self.stat_dim])
