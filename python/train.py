@@ -224,10 +224,12 @@ def match(bot,round=10):
 
 def train(round=10):
     #bot=DeepQLearning()
+    bot.random=True
     buffer=match(bot,round)
     bot.update_model(buffer)
 
 def test():
+    bot.random=False
     with tensorflow.Graph().as_default() as net2_graph:
         bot_raw=DeepQLearning()
     rate=0

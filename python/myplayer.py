@@ -7,7 +7,7 @@ from collections import deque
 class DeepQLearning():
     def __init__(self):
         self.replay_memory=deque()
-        self.stat_dim=4
+        self.stat_dim=8
         self.card_number=15  #0-12加上只给大小王用的13、14
         self.card_colour=5   #大小王算一种单独的花色，分别在13、14位置
         self.action_dim=1
@@ -15,11 +15,13 @@ class DeepQLearning():
         self.session=tf.Session()
         self.session.run(tf.global_variables_initializer())
         self.session.run(tf.local_variables_initializer())
+        self.saver = tf.train.Saver(tf.global_variables())
+        self.random=False
+        self.random_rate=0.1
         self.restore()
         self.gamma=0.9
 
     def restore(self):
-        self.saver = tf.train.Saver(tf.global_variables())
         self.saver.restore(self.session, "./python/model/saved_networks")
 
     
@@ -97,6 +99,7 @@ class DeepQLearning():
                 stat_feat[13, 4, 1] += 1
             else:
                 stat_feat[14, 4, 1] += 1
+        
         for card in stat.pre_history:
             if card<52:
                 stat_feat[int(card/4)+1, card%4, 2] += 1
@@ -104,6 +107,7 @@ class DeepQLearning():
                 stat_feat[13, 4, 2] += 1
             else:
                 stat_feat[14, 4, 2] += 1
+        
         for card in stat.next_history:
             if card<52:
                 stat_feat[int(card/4)+1, card%4, 3] += 1
@@ -112,7 +116,34 @@ class DeepQLearning():
             else:
                 stat_feat[14, 4, 3] += 1
 
+        for card in stat.my_last:
+            if card<52:
+                stat_feat[int(card/4)+1, card%4, 0] += 1
+            elif card==52:
+                stat_feat[13, 4, 4] += 1
+            else:
+                stat_feat[14, 4, 4] += 1
         return stat_feat
+
+        for card in stat.pre_last:
+            if card<52:
+                stat_feat[int(card/4)+1, card%4, 0] += 1
+            elif card==52:
+                stat_feat[13, 4, 5] += 1
+            else:
+                stat_feat[14, 4, 5] += 1
+
+        for card in stat.next_last:
+            if card<52:
+                stat_feat[int(card/4)+1, card%4, 0] += 1
+            elif card==52:
+                stat_feat[13, 4, 6] += 1
+            else:
+                stat_feat[14, 4, 6] += 1
+        
+        for i in range(self.card_number):
+            for j in range(self.card_colour):
+                stat_feat[i,j, 7]=stat.my_id
 
     def update_model(self, experiences):
         action_feats= []
@@ -142,6 +173,9 @@ class DeepQLearning():
         stat_feats = [stat_feat for i in range(len(action_list))]
         q = self.qAction.eval(session=self.session,feed_dict={self.stat_feats: stat_feats, self.action_feats: action_feats})
         idx = int(np.argmax(q))
+        if self.random==True:
+            if (random.random())>0.9:
+                idx=random.randint(0,len(q)-1)
         return action_list[idx]
 
 class GetStat():
@@ -156,6 +190,7 @@ class GetStat():
         self.get_next_history()
         self.get_my_card()
         self.get_my_id()
+        self.get_last_history()
 
     def get_my_id(self):
         self.my_id = 0 # 判断自己是什么身份，地主0 or 农民甲1 or 农民乙2
@@ -186,6 +221,14 @@ class GetStat():
         self.next_history=[]
         for _ ,round in enumerate(self.all_info["requests"]):
             self.next_history+=round["history"][0]
+    
+    def get_last_history(self):
+        self.pre_last=self.last_history[1]
+        self.next_history=self.last_history[0]
+        if len(self.all_info["responses"])!=0:
+            self.my_last=self.all_info["responses"][-1]
+        else:
+            self.my_last=[]
       
 class GetAction():
     def __init__ (self,stat):
