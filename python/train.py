@@ -164,7 +164,7 @@ def calculate_rewards(card_combo):
     typeP,_,_=checkPokerType(card_combo,0)
     punish=0
     for _, card in enumerate(card_combo):
-        punish+=int(card/4)*0.05
+        punish+=int(card/4)*0.1
     reward=typeP/100-punish
     return reward
 
