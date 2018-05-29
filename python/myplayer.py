@@ -17,7 +17,7 @@ class DeepQLearning():
         self.session.run(tf.local_variables_initializer())
         self.saver = tf.train.Saver(tf.global_variables())
         self.random=False
-        self.random_rate=0.1
+        self.random_rate=0.5
         self.restore()
         self.gamma=0.9
 
@@ -158,7 +158,7 @@ class DeepQLearning():
 
         _, loss,q = self.session.run((self.train_op,self.loss, self.qAction), feed_dict = { self.stat_feats:stat_feats,self.action_feats:action_feats,self.reward:reward_feats})
         print(loss)
-
+        self.random_rate=loss/20
     def receive_stat(self,stat):
         self.stat = stat
 
@@ -174,7 +174,7 @@ class DeepQLearning():
         q = self.qAction.eval(session=self.session,feed_dict={self.stat_feats: stat_feats, self.action_feats: action_feats})
         idx = int(np.argmax(q))
         if self.random==True:
-            if (random.random())>0.9:
+            if (random.random())<self.random_rate:
                 idx=random.randint(0,len(q)-1)
         return action_list[idx]
 

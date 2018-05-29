@@ -161,7 +161,10 @@ def checkPokerType(poker, hasTransfer): # poker：list，表示一个人出牌�
 
 def calculate_rewards(card_combo):
     typeP,_,_=checkPokerType(card_combo,0)
-    reward=typeP/100
+    punish=0
+    for _, card in enumerate(card_combo):
+        punish+=int(card/4)*0.05
+    reward=typeP/100-punish
     return reward
 
 def init_game():
@@ -236,6 +239,7 @@ def test():
     bot_list=[bot_raw,bot,bot]
     for _ in range(10):
         json_list=init_game()
+        json_test_list=copy.deepcopy(json_list)
         card_count=[20,17,17]
         my_comb,next_comb,prev_comb=[],[],[]
         index=0
@@ -255,7 +259,7 @@ def test():
             rate+=1
     bot_list=[bot,bot_raw,bot_raw]
     for _ in range(10):
-        json_list=init_game()
+        json_list=copy.deepcopy(json_test_list)
         card_count=[20,17,17]
         my_comb,next_comb,prev_comb=[],[],[]
         index=0
