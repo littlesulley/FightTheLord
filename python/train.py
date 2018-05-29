@@ -1,4 +1,5 @@
 from myplayer import DeepQLearning,GetAction,GetStat
+import sample
 import numpy as np
 import random
 import json
@@ -202,14 +203,17 @@ def match(bot,round=10):
             json_list[index]=deal_response(json_list[index],my_comb,next_comb,prev_comb)
             now_player.append(index)
             temp=copy.deepcopy(json_list[index])
-            stat=GetStat(temp)
-            stat_for_train.append(stat)
-            temp=copy.deepcopy(stat)
-            action=GetAction(temp)
-            bot.receive_stat(temp)
             my_comb=next_comb
             next_comb=prev_comb
-            prev_comb=bot.take_action(action.res)
+            if index!=0:
+                stat=GetStat(temp)
+                stat_for_train.append(stat)
+                temp=copy.deepcopy(stat)
+                action=GetAction(temp)
+                bot.receive_stat(temp)
+                prev_comb=bot.take_action(action.res)
+            else:
+                prev_comb=sample.payer(temp)
             action_for_train.append(prev_comb)
             card_count[index]-=len(prev_comb)
             index=(index+1)%3
