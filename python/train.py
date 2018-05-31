@@ -192,6 +192,7 @@ def deal_response(json,my_comb,next_comb,prev_comb):
     return json 
 
 def match(bot,round=10):
+    win_rate=0
     buffer=deque()
     for _ in range(round):
         json_list=init_game()
@@ -205,7 +206,7 @@ def match(bot,round=10):
             temp=copy.deepcopy(json_list[index])
             my_comb=next_comb
             next_comb=prev_comb
-            if index!=0:
+            if index==0:
                 stat=GetStat(temp)
                 stat_for_train.append(stat)
                 temp=copy.deepcopy(stat)
@@ -219,6 +220,7 @@ def match(bot,round=10):
             index=(index+1)%3
         rewards=np.zeros(len(now_player))
         if index==0:
+            win_rate+=1
             rewards[np.array(now_player) == 0]=2.0
             rewards[np.array(now_player) !=0]=0
         else:
@@ -227,6 +229,8 @@ def match(bot,round=10):
         for i in range(len(now_player)):
             rewards[i]+=calculate_rewards(action_for_train[i])
     buffer.extend(zip(stat_for_train,action_for_train,rewards))
+    print("与样例比较：")
+    print(win_rate/round)
     return buffer
 
 def train(round=10):
