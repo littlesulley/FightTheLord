@@ -123,7 +123,6 @@ class DeepQLearning():
                 stat_feat[13, 4, 4] += 1
             else:
                 stat_feat[14, 4, 4] += 1
-        return stat_feat
 
         for card in stat.pre_last:
             if card<52:
@@ -144,6 +143,7 @@ class DeepQLearning():
         for i in range(self.card_number):
             for j in range(self.card_colour):
                 stat_feat[i,j, 7]=stat.my_id
+        return stat_feat
 
     def update_model(self, experiences):
         action_feats= []
@@ -224,7 +224,7 @@ class GetStat():
     
     def get_last_history(self):
         self.pre_last=self.last_history[1]
-        self.next_history=self.last_history[0]
+        self.next_last=self.last_history[0]
         if len(self.all_info["responses"])!=0:
             self.my_last=self.all_info["responses"][-1]
         else:
@@ -240,7 +240,11 @@ class GetAction():
             if self.res==[]:
                 self.res.append([])
         else:
-            self.res=self.separate(self.poker)
+            self.poker.sort()
+            if(len(self.poker)>6):
+                self.res=self.separate(self.poker[:int(len(self.poker)*0.7)])
+            if (len(self.res)==0):
+                self.res=self.separate(self.poker)
 
     def ordinalTransfer(self,poker):
         newPoker = [int(i/4)+3 for i in poker if i <= 52]
