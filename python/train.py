@@ -6,6 +6,8 @@ import json
 import copy
 from collections import deque
 import tensorflow
+import ast
+import os
 
 def ordinalTransfer(poker):
         newPoker = [int(i/4)+3 for i in poker if i <= 52]
@@ -240,7 +242,7 @@ def train(round=10):
     bot.update_model(buffer)
 
 def test():
-    bot.random=False
+    bot.random='false'
     with tensorflow.Graph().as_default() as net2_graph:
         bot_raw=DeepQLearning()
     rate=0
@@ -289,11 +291,74 @@ def test():
     print(rate)
     if(rate>=0.55):
         bot.save()
-    else:
-        bot.restore()
+
+def train_with_history(file_name):
+    buffer=deque()
+    with open(file=file_name,mode='r',encoding='utf-8') as f:
+        for temp in f.readlines():
+            temp=temp.replace('false','\'false\'')
+            temp=temp.replace('true','\'true\'')
+            history_card=[]
+            temp=eval(temp)
+            history=temp['log']
+            if 'errorInfo' in history[-1]['output']['display']:
+                continue
+            stat_for_train,action_for_train,now_player=[],[],[]
+            mark=0
+            public_card=[]
+            own_card=[[],[],[]]
+            for index,iter in enumerate(history):
+                if index%2==0:
+                    if iter['output']['command']=='finish':
+                        break
+                    my_id=int((index/2)%3)
+                    now_player.append(my_id)
+                    my_history=[]
+                    for i,history_temp in enumerate(history_card):
+                        if i%3==my_id:
+                            my_history.append(history_temp)
+                    other_history=[]
+                    if 'own' in iter['output']['content'][str(my_id)]:
+                        own_card[my_id]=(iter['output']['content'][str(my_id)]['own'])
+                    own_temp=copy.deepcopy(own_card[my_id])
+                    if 'publiccard' in iter['output']['content'][str(my_id)]:
+                        public_card=iter['output']['content'][str(my_id)]['publiccard']
+                    other_history.append(iter['output']['content'][str(my_id)]['history'][0])
+                    other_history.append(iter['output']['content'][str(my_id)]['history'][1])
+                    temp_data={'requests':[{'own':own_temp,'publiccard':public_card,'history':other_history}],'responses':my_history}
+                    stat_for_train.append(GetStat(temp_data))
+                else:
+                    my_id=int(((index-1)/2)%3)
+                    if (iter[str(my_id)]['verdict']=='OK'):
+                        action_for_train.append(iter[str(my_id)]['response'])
+                        history_card.append(iter[str(my_id)]['response'])
+                    else:
+                        mark=1
+            if mark==1:
+                continue
+            rewards=np.zeros(len(now_player))
+            index=temp['scores'][1]
+            if index==0:
+                rewards[np.array(now_player) == 0]=2.0
+                rewards[np.array(now_player) !=0]=0
+            else:
+                rewards[np.array(now_player) != 0]=2.0
+                rewards[np.array(now_player) ==0]=0
+            for i in range(len(now_player)):
+                rewards[i]+=calculate_rewards(action_for_train[i])
+            buffer.extend(zip(stat_for_train,action_for_train,rewards))
+    bot.update_model(buffer)
+
+def main():
+    i=1
+    for data_file in os.listdir('d:/data'):
+        print(data_file)
+        i+=1
+        data_file=os.path.join('d:/data',data_file)
+        train_with_history(data_file)
+        test()
 
 bot=DeepQLearning()
-while(1!=0):
-    train(100)
-    test()
+main()
+
     

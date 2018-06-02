@@ -3,6 +3,8 @@ import numpy as np
 import json 
 import random
 from collections import deque 
+import copy
+import itertools
 
 class DeepQLearning():
     def __init__(self):
@@ -240,11 +242,11 @@ class GetAction():
             if self.res==[]:
                 self.res.append([])
         else:
-            self.poker.sort()
-            if(len(self.poker)>6):
-                self.res=self.separate(self.poker[:int(len(self.poker)*0.7)])
-            if (len(self.res)==0):
-                self.res=self.separate(self.poker)
+            self.res=self.first_push(self.poker)
+            #if(len(self.poker)>6):
+                #self.res=self.separate(self.poker[:int(len(self.poker)*0.7)])
+            #if (len(self.res)==0):
+                #self.res=self.separate(self.poker)
 
     def ordinalTransfer(self,poker):
         newPoker = [int(i/4)+3 for i in poker if i <= 52]
@@ -252,6 +254,110 @@ class GetAction():
             newPoker += [17]
         return newPoker
 
+    def first_push(self,poker):
+        res=[]
+        single=[]
+        pair=[]
+        multi_triple=[]
+        triple=[]
+        bomb=[]
+        real_count=[0 for i in range(15)]
+        count=[[] for i in range(15)]
+        for card in poker:
+            single.append(card)
+            res.append([card])
+            if card<53:
+                count[int(card/4)].append(card)
+                real_count[int(card/4)]+=1
+            else:
+                count[14].append(card)
+                real_count[14]+=1
+        for _, card in enumerate(count):
+            if(len(card)>=2):
+                pair.append(card[0:2])
+                res.append(card[0:2])
+            if(len(card)>=3):
+                triple.append(card[0:3])
+                res.append(card[0:3])
+            if(len(card)==4):
+                bomb.append(res)
+                res.append(card[0:3])
+        for _, main_combo in enumerate(triple):
+            for card in single:
+                if(int(card/4)!=int(main_combo[0]/4)):
+                    temp=copy.deepcopy(main_combo)
+                    temp.append(card)
+                    res.append(temp)
+            for _, min_combo in enumerate(pair):
+                if(min_combo[0]!=main_combo[0]):
+                    temp=copy.deepcopy(main_combo)
+                    temp.append(min_combo[0])
+                    temp.append(min_combo[1])
+                    res.append(temp)
+        for index, card in enumerate(count):
+            for length in range (5,12):
+                if(index<=12-length):
+                    if(0 not in real_count[index:index+length]):
+                        temp=[count[index+j][0] for j in range(length)]
+                        res.append(temp)
+            for length in range (3,12):
+                temp=[]
+                if(index<=12-length):
+                    if(0 not in real_count[index:index+length] and 1 not in real_count[index:index+length]):
+                        for j in range(length):
+                            temp.append(count[index+j][0])
+                            temp.append(count[index+j][1])
+                        res.append(temp)
+            for length in range (2,12):
+                temp=[]
+                if(index<=12-length):
+                    if(0 not in real_count[index:index+length] and 1 not in real_count[index:index+length] and 2 not in real_count[index:index+length]):
+                        for j in range(length):
+                            temp.append(count[index+j][0])
+                            temp.append(count[index+j][1])
+                            temp.append(count[index+j][2])
+                        multi_triple.append(temp)
+                        res.append(temp)
+        if (len(multi_triple)!=0):
+            for _,trible in enumerate(multi_triple):
+                temp_3plus1=[]
+                temp_single=copy.deepcopy(single)
+                for trible_card in trible:
+                    temp_3plus1.append(trible_card)
+                i=0
+                while i <len(temp_single):
+                    for trible_card in trible:
+                        if (int(temp_single[i]/4))==(int(trible_card/4)):
+                            temp_single.remove(temp_single[i])
+                            i-=1
+                            break
+                    i+=1
+                if (len(temp_single)>=len(trible)/3):
+                    temp_list=itertools.combinations(temp_single,int(len(trible)/3))
+                    temp_one=[]
+                    for one in temp_list:
+                        temp_one.append(one)
+                    for _,iter in enumerate(temp_one):
+                        temp_temp=copy.deepcopy(temp_3plus1)
+                        temp_temp+=iter
+                        res.append(temp_temp)
+                temp_pair=copy.deepcopy(pair)
+                pair_pair=itertools.combinations(temp_pair,int(len(trible)/3))
+                for _, pair in enumerate(pair_pair):
+                    mark=0
+                    temp=[]
+                    for i in range(len(pair)):
+                        if pair[i][0] in trible:
+                            mark=1
+                            break
+                    if mark!=1:
+                        for card in pair:
+                            temp.extend(card)
+                        temp.extend(trible)
+                        res.append(temp)
+        return res
+
+            
     def separate(self,poker): 
         res = []
         if len(poker) == 0:
