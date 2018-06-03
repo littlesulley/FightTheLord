@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\python"
   ],
-  "SelectedNode": "\\ver1.4.cpp",
+  "SelectedNode": "\\python\\train.py",
   "PreviewInSolutionExplorer": false
 }

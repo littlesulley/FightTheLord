@@ -221,13 +221,15 @@ def match(bot,round=10):
             card_count[index]-=len(prev_comb)
             index=(index+1)%3
         rewards=np.zeros(len(now_player))
-        if index==0:
-            win_rate+=1
-            rewards[np.array(now_player) == 0]=2.0
-            rewards[np.array(now_player) !=0]=0
-        else:
-            rewards[np.array(now_player) != 0]=2.0
-            rewards[np.array(now_player) ==0]=0
+        time=len(now_player)
+        for i in range(time):
+            if index==0:
+                win_rate+=1
+                rewards[np.array(now_player) == 0]=2.0*int(i/3)/int(time/3)
+                rewards[np.array(now_player) !=0]=0
+            else:
+                rewards[np.array(now_player) != 0]=2.0*int(i/3)/int(time/3)
+                rewards[np.array(now_player) ==0]=0
         for i in range(len(now_player)):
             rewards[i]+=calculate_rewards(action_for_train[i])
     buffer.extend(zip(stat_for_train,action_for_train,rewards))
@@ -351,10 +353,10 @@ def train_with_history(file_name):
 
 def main():
     i=1
-    for data_file in os.listdir('d:/data'):
+    for data_file in os.listdir('/home/guoxiaobo96/data'):
         print(data_file)
         i+=1
-        data_file=os.path.join('d:/data',data_file)
+        data_file=os.path.join('/home/guoxiaobo96/data',data_file)
         train_with_history(data_file)
         test()
 
